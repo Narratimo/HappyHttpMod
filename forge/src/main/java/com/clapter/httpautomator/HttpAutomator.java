@@ -26,7 +26,7 @@ import java.util.Set;
 public class HttpAutomator {
 
     public HttpAutomator() {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, HttpServerConfig.);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, HttpServerConfig.COMMON_SPEC);
         CommonClass.init();
         MinecraftForge.EVENT_BUS.addListener(this::onServerStarting);
         MinecraftForge.EVENT_BUS.addListener(this::onServerStarted);
