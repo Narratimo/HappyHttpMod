@@ -1,0 +1,133 @@
+# .github/ISSUE_TEMPLATE/compatibility.yml
+
+name: Compatibility report
+description: Report a build, launch, or functional compatibility issue for a specific loader and Minecraft version.
+title: "[Compatibility] <loader> <minecraft version>: <short summary>"
+labels: ["compatibility"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template when something is actually failing (build error, crash, or functional regression).
+
+        If you are only asking “does it work on version X”, do not open a new issue.
+        Instead, update `docs/versions.md` (status: Untested) and comment in the relevant compatibility tracker issue.
+
+  - type: dropdown
+    id: loader
+    attributes:
+      label: Loader
+      options:
+        - Forge
+        - NeoForge
+        - Fabric
+    validations:
+      required: true
+
+  - type: input
+    id: minecraft_version
+    attributes:
+      label: Minecraft version
+      description: "Example: 1.20.2, 1.21.1"
+      placeholder: "1.21.1"
+    validations:
+      required: true
+
+  - type: input
+    id: mod_version
+    attributes:
+      label: Mod version or commit
+      description: "Release version, or a commit hash/branch name if testing a PR build."
+      placeholder: "v1.2.3 or commit abc1234"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      options:
+        - Client
+        - Dedicated server
+        - Both
+    validations:
+      required: true
+
+  - type: dropdown
+    id: failure_type
+    attributes:
+      label: What fails
+      options:
+        - Build fails
+        - Game crashes on launch
+        - Crash when loading a world
+        - Block UI/config does not work
+        - HTTP Receiver does not trigger redstone
+        - HTTP Sender does not send requests
+        - Config file does not generate or apply
+        - Other (describe below)
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: "Numbered steps that reliably reproduce the issue."
+      placeholder: |
+        1. Install Forge X for Minecraft 1.21.1
+        2. Install Happy HTTP version Y
+        3. Launch the game
+        4. Crash occurs at ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      placeholder: "What you expected to happen."
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      placeholder: "What actually happened."
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / crash reports
+      description: |
+        Attach `latest.log` and any crash report file if available.
+        If pasting, include only the relevant excerpt and wrap it in a code block.
+      placeholder: |
+        Attach files or paste key excerpt here.
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Relevant configuration (optional)
+      description: "Paste relevant parts of `happyhttpmod-config.toml` if it matters. Remove sensitive details."
+      placeholder: |
+        ["Http Server Settings"]
+        port = 8080
+        local_adress = "192.168.0.1"
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues to avoid duplicates
+          required: true
+        - label: I included loader, Minecraft version, and mod version/commit
+          required: true
+        - label: I attached logs or crash reports
+          required: true
