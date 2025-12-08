@@ -1,107 +1,99 @@
 # GOVERNANCE.md
 
-This document explains how the Happy HTTP project is maintained and how decisions are made.
+This document explains how the Happy HTTP project is run: who makes product decisions, who maintains code, and how work is coordinated.
 
-It exists to keep collaboration smooth for a small core team and future contributors.
+This project has a product owner who defines direction and priorities. Code maintenance is handled by technical contributors who choose to take responsibility for review and merging.
 
-## Project roles
+## Roles
 
-### Maintainers
+### Project owner
 
-Maintainers are responsible for:
-- Reviewing and merging pull requests
-- Keeping the build green
-- Cutting releases
-- Updating documentation when workflows change
-- Making final calls when there is disagreement
+The project owner is responsible for product management, not code review.
 
-Maintainers may also assign “ownership” of modules (by loader/version) to reduce review bottlenecks.
+Responsibilities
+- Define roadmap, priorities, and scope
+- Approve documentation structure and contributor workflow
+- Decide which features and ports matter most
+- Triage issues at a product level
+- Define release goals and what “supported” means publicly
+
+Current project owner
+- Tor (teenne)
+
+### Code maintainers
+
+Code maintainers are responsible for the technical integrity of the repository.
+
+Responsibilities
+- Review and merge pull requests
+- Keep the build green
+- Enforce repo layout rules (`common` vs version modules)
+- Own loader/version porting quality
+- Coordinate technical decisions and document them
+- Prepare releases, or approve release PRs prepared by others
+
+Current status
+- No dedicated code maintainer is assigned yet
+
+This is normal for early-stage open source. The first stable maintainers usually emerge from repeated contributions.
 
 ### Contributors
 
-Contributors can:
-- Open issues
-- Submit pull requests
-- Participate in discussions
-- Help test builds across supported targets
+Contributors can open issues and submit pull requests.
 
-Contributors do not need permission to propose changes. Maintainers decide what gets merged.
+Responsibilities
+- Keep PR scope focused
+- Include testing notes and evidence
+- Follow the porting guide and repo layout rules
+- Help with testing across loaders and Minecraft versions
 
 ## Where decisions are recorded
 
-- Discord is for quick coordination and discussion
+- Discord is for quick discussion and coordination
 - GitHub is the source of truth for decisions and work items
 
 Rules
-- If it affects the codebase, it must be captured in GitHub as an issue, PR, or doc change
-- Architecture and workflow decisions must be written into:
-  - the relevant GitHub issue or PR description, or
-  - a document in the `docs/` folder
+- If it affects the codebase, it must be captured in GitHub (issue, PR, or docs)
+- Discord decisions should be summarised in the relevant GitHub issue or PR
+- Documentation in `docs/` is treated as canonical when it describes workflows and structure
 
 ## How work is tracked
 
-- Bugs, compatibility problems, and feature requests are tracked as GitHub issues
-- PRs are the only way changes enter the codebase
-- Release notes are tracked via GitHub Releases (and optionally a `CHANGELOG.md`)
+- Bugs, compatibility problems, and features are tracked as GitHub issues
+- Pull requests are the only way code changes land
+- Supported targets are tracked in `docs/versions.md`
+
+Compatibility policy
+- We do not open one issue per patch version unless the patch introduces a real break
+- Compatibility work should be coordinated through one tracker issue per loader
 
 ## Decision-making
 
-Default rule
-- We aim for consensus between active maintainers
+### Product decisions
 
-When consensus is not possible
-- The maintainer responsible for the affected area makes the final call
+Product decisions are made by the project owner.
 
-Areas can include
-- build and repository structure
-- a specific loader
-- a specific Minecraft version line
+Examples
+- Roadmap and priority order
+- Which versions to target next
+- Which features to accept or defer
+- Release goals
 
-## Scope control
+### Technical decisions
 
-We keep the project maintainable by being strict about scope.
+Technical decisions are made by the code maintainers for the affected area.
 
-We prioritise:
-- work that improves multi-version and multi-loader maintainability
-- work that reduces support burden and configuration mistakes
-- reliability and safety improvements
+Examples
+- How the multi-module Gradle build is implemented
+- How shared logic is split between `common` and platform glue
+- How to handle a breaking API change in a specific version line
 
-We de-prioritise:
-- large features without a clear use case and test plan
-- changes that add complexity to every target without strong value
-- “one PR does everything” changes that are hard to review
+If no maintainer exists for an area yet, technical decisions are made by the contributor doing the work, but must be documented clearly in the PR and reviewed by whoever merges.
 
-## Contribution acceptance policy
+## Review and merge policy
 
-We accept contributions when they:
-- align with the project direction
-- follow repository structure rules (`common` vs version modules)
-- keep PR scope focused
-- include basic testing notes
-- do not break existing supported targets
-
-We may ask contributors to revise PRs to match these rules.
-
-## Version support policy
-
-- The supported matrix is tracked in `docs/versions.md`
-- We do not treat every patch version as a separate target unless it introduces a real break
-- Compatibility work should be coordinated through tracker issues rather than dozens of parallel issues
-
-## Releases
-
-- Releases are produced per target jar (loader + Minecraft version)
-- Releases must clearly state what they support
-- A release should not claim support that is not reflected in `docs/versions.md`
-
-## Community expectations
-
-- Be respectful and constructive
-- Assume good intent
-- Keep discussions grounded in concrete information (logs, steps, evidence)
-- Help newcomers get unblocked by pointing to the correct docs and issues
-
-## Changes to governance
-
-This document can be updated via pull request.
-If you want to propose a governance change, open an issue first.
+A PR can be merged when:
+- It is focused and understandable
+- It follows repo layout rules
+- It includes testing notes
+- It does not break supported targets (or clearly documents what is broke
