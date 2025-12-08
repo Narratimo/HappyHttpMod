@@ -1,137 +1,141 @@
-# Repository layout and module responsibilities
+# docs/repo-layout.md
 
-This repository is organised to support multiple Minecraft versions and multiple loaders from one codebase.
+This document defines the intended repository layout for Happy HTTP.
 
-The goal is:
+It exists so contributors can cooperate without stepping on each other, and so refactors for multi-version and multi-loader support stay consistent.
 
-- One jar per loader and Minecraft version
-- A shared core that avoids duplication
-- A build that can produce all supported jars in one command
+## Design goals
 
-## The two axes
+- Multi-version support without separate repositories
+- Multi-loader support without duplicating core logic
+- Clear module boundaries so ports are mechanical
+- One module produces one jar
 
-This repo has two axes:
+## Top-level layout
 
-1. **Loader**: Forge, NeoForge, Fabric  
-2. **Minecraft version**: 1.20.2, 1.20.4, 1.21.x, and so on
-
-Each supported combination of loader and Minecraft version is implemented as its own Gradle module.
-
-## Target directory structure
-
-Illustrative structure
+Expected top-level folders:
 
 ```text
-common/                         Shared logic used by all loaders and versions
-
+common/
 forge/
-  mc_1_20_2/                    Forge implementation for Minecraft 1.20.2
-  mc_1_20_4/
-  mc_1_21_1/
-
+neoforge/
 fabric/
+docs/
+.github/
+```
+
+Additional folders may exist, but these define the supported structure.
+
+## The common module
+
+`common/` contains shared logic.
+
+Rules
+- `common/` must not depend on Minecraft classes or loader APIs
+- No Forge/Fabric/NeoForge imports
+- No mixins or loader-specific event hooks
+- Keep it stable and reusable
+
+Good candidates for `common/`
+- Data models (block configuration models)
+- Parsing and validation utilities
+- HTTP request construction and response parsing
+- Shared domain logic (what should happen when a request matches)
+
+## Loader folders
+
+Each loader folder contains one or more Minecraft version modules.
+
+### Forge layout
+
+```text
+forge/
   mc_1_20_2/
   mc_1_21_1/
+```
 
+### NeoForge layout
+
+```text
 neoforge/
   mc_1_21_1/
 ```
 
-The exact set of modules will evolve. The source of truth for what is supported is [docs/versions.md](versions.md).
+### Fabric layout
 
-## What goes where
+```text
+fabric/
+  mc_1_21_1/
+```
 
-### common/
+Rules
+- Each `mc_<version>/` folder is a Gradle module
+- Each module builds exactly one jar
+- Module code should be mostly glue and integration
 
-`common/` is for code that should behave identically across all supported targets.
+## Version modules
 
-Put code here when it is:
-- Pure logic (parsing, validation, data structures, helpers)
-- Configuration models that do not depend on Minecraft classes
-- HTTP client/server logic that can be expressed without importing loader APIs
-- Anything that would otherwise be duplicated across modules
+A version module contains:
 
-Guideline
-- Avoid importing Minecraft or loader classes into `common/`. If you need platform behaviour, define a small interface and implement it in the version module.
+- Mod entrypoint and lifecycle integration
+- Block and item registration
+- Block entities, networking, UI registration
+- Resources for that target (assets, data, metadata)
+- Mixins for that specific target (if used)
 
-### Version modules (forge/mc_*, fabric/mc_*, neoforge/mc_*)
+Rules
+- Keep code thin
+- Put reusable logic into `common/` where possible
+- Avoid creating cross-dependencies between version modules
 
-Each version module is responsible for:
-- Loader entrypoints and initialisation
-- Registration and event wiring
-- Block and item registration and lifecycle hooks
-- Mixins and their configs for that specific target
-- Version-specific resources and metadata
+## Resources policy
 
-Typical contents
-- `src/main/java` with loader-specific and version-specific glue
-- `src/main/resources`
-  - Forge/NeoForge: `META-INF/mods.toml`
-  - Fabric: `fabric.mod.json`
-  - Mixin configs tied to that target
+Resources are often the hardest part to share.
 
-### Optional loader-common modules
+Guidelines
+- Prefer keeping resources per module to avoid accidental conflicts
+- If resources are identical across modules, consider a shared resources strategy, but document it clearly because it can create confusing build behaviour
+- Never rely on manual copying as the long-term process
 
-As the module count grows, we may introduce loader-common modules to share glue that is common across multiple versions for the same loader.
+If you introduce shared resources, document:
+- where they live
+- how they get included in each module jar
+- how conflicts are resolved
 
-Examples
-- `forge/common/` or `forge/forge-common/`
-- `fabric/common/`
-- `neoforge/common/`
+## Root Gradle tasks
 
-If these exist, they are allowed to depend on loader APIs but should avoid depending on Minecraft version-specific APIs as much as possible.
+The root project should provide:
+
+- `buildAll` to build all supported modules
+- `collectJars` to collect all module jars into one folder (for example `dist/`)
+
+This removes friction for contributors and makes CI straightforward.
 
 ## Naming conventions
 
-### Module folder names
+### Module names
 
-- Loader folder: `forge`, `fabric`, `neoforge`
-- Version module folder: `mc_1_20_2`, `mc_1_21_1`
+- `mc_1_20_2` not `1.20.2` to keep Gradle happy
+- Use consistent naming across loaders
 
-Rules
-- Use underscores in module folder names
-- Do not use the word “latest” in folder names. Always pin the version.
+### Jar names
 
-### Jar naming
+Jar names must include loader and Minecraft version.
 
-Jars must include both loader and Minecraft version so they never overwrite.
+Recommended
+- `happyhttp-<mod_version>-<loader>-mc<minecraft_version>.jar`
 
-Example format
+## Where docs live
 
-- `happyhttp-<mod_version>-forge-mc1.20.2.jar`
-- `happyhttp-<mod_version>-forge-mc1.21.1.jar`
+- Project docs: `docs/`
+- Contributor workflow: `CONTRIBUTING.md`, `GOVERNANCE.md`, `MAINTAINERS.md`
+- Security: `SECURITY.md`
 
-This is enforced by Gradle config in each version module.
+Docs should be treated as part of the product. If you change structure, update docs in the same PR.
 
-## Build tasks
+## Quick links
 
-Expected tasks (may be added during refactor)
-
-- Build everything
-  - `./gradlew buildAll`
-
-- Collect all jars into one folder
-  - `./gradlew collectJars`
-
-- Build one module (example)
-  - `./gradlew :forge:mc_1_20_2:build`
-
-If you are unsure about module task names, run:
-
-```
-./gradlew projects
-```
-
-## Rules that prevent drift
-
-- Shared logic belongs in `common` unless it truly must be loader or version-specific
-- Version modules should be thin and focused on integration and glue
-- Do not duplicate logic across version modules without documenting why
-- Keep ports small: one version module per PR is the default
-- If you change `common`, you must ensure all modules still build
-
-## Where to look next
-
-- Supported versions matrix: [docs/versions.md](versions.md)
-- Porting steps: [docs/porting-guide.md](porting-guide.md)
-- Contribution workflow: [CONTRIBUTING.md](../CONTRIBUTING.md)
+- Support matrix: `docs/versions.md`
+- Porting guide: `docs/porting-guide.md`
+- Testing: `docs/testing.md`
+- Build and release: `docs/build-and-release.md`
