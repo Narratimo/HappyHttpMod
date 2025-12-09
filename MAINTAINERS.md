@@ -68,7 +68,7 @@ Maintainers are added through a PR updating this file.
 
 ## Where decisions are recorded
 
-- Discord is for quick coordination and discussion
+- Discord is for quick coordination and discussion [Join our Discord server](https://discord.gg/DVuQSV27pa)
 - GitHub is the source of truth for work items and decisions that affect the codebase
 
 Product direction decisions are approved by the project owner.
