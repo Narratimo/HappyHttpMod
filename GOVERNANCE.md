@@ -49,7 +49,7 @@ Responsibilities
 
 ## Where decisions are recorded
 
-- Discord is for quick discussion and coordination
+- Discord is for quick discussion and coordination [Join our Discord server](https://discord.gg/DVuQSV27pa)
 - GitHub is the source of truth for decisions and work items
 
 Rules
