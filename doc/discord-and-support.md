@@ -3,6 +3,7 @@
 This document explains how we use Discord alongside GitHub, and how we handle support so the project does not become unmanageable.
 
 We have a Discord server with a channel for the mod. Discord is useful for speed, but GitHub is the permanent record.
+[Join our Discord server](https://discord.gg/DVuQSV27pa)
 
 ## What Discord is for
 
