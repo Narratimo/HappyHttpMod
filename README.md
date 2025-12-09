@@ -128,6 +128,9 @@ This Minecraft mod introduces two custom blocks that interact with webhooks and 
 
 - To allow webhooks on your server to be allowed to pass through your router, you often need to set up port forwarding on your router. Configure that the webhook port you have defined in the config is forwarded to the Minecraft server IP. 
 
+<img width="802" height="904" alt="image" src="https://github.com/user-attachments/assets/ca5b7191-daea-409f-8a75-02bc8720d860" />
+
+
 ## Contributing
 Guidelines for contributing to the project.
 
