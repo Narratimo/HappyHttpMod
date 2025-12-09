@@ -1,7 +1,9 @@
 # Happy HTTP Minecraft Mod
 
 The purpose of happy http is to be able to create adventures with a mix of the ordinary world and the minecraft world. Each world can trigger events in the other world. **The project is maintained by Eira**. A non-commercial organization with the purpose of teaching kids and teenagers to code and learn technolgy. 
+
 This Minecraft mod introduces two custom blocks that interact with webhooks and HTTP requests, enabling powerful integrations and automations both within and outside the Minecraft world.
+
 ![Screenshot 2024-06-12 155630](https://github.com/clapters/HappyHttpMod/assets/128842272/59fcf0e0-b03a-4e82-ba70-7696e9f79b77)
 
 ## Table of Contents
