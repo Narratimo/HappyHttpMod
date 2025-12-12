@@ -5,12 +5,14 @@
 **Original Issue:** The mod was not compatible with Minecraft 1.21.x on Forge. Users reported crashes when launching the game.
 
 **Environment:**
+
 - Minecraft Version: 1.21.x (1.21.1 specifically targeted)
 - Original Mod Loader: Forge (for 1.20.2)
 - New Mod Loader: NeoForge (required for 1.21.x)
 - Affected: Both Clients and Servers
 
 **Root Cause:** Starting with Minecraft 1.20.5, the Forge mod loader split into two projects:
+
 - **Forge** - Continued support for older versions (1.20.4 and below)
 - **NeoForge** - The new standard for Minecraft 1.20.5+ and 1.21.x
 
@@ -23,6 +25,7 @@ The original mod was built for Forge 1.20.2 and could not run on Minecraft 1.21.
 ### 1. Project Structure Changes
 
 #### 1.1 Settings.gradle Updates
+
 The project was reconfigured to build the NeoForge module instead of the Forge module.
 
 **File:** `settings.gradle`
@@ -61,6 +64,7 @@ include("neoforge")  // Active module for 1.21.x
 ```
 
 #### 1.2 Gradle Properties Updates
+
 **File:** `gradle.properties`
 
 ```properties
@@ -80,9 +84,11 @@ org.gradle.daemon=false
 ### 2. Build Configuration Changes
 
 #### 2.1 NeoForge build.gradle
+
 **File:** `neoforge/build.gradle`
 
 Key changes:
+
 - Updated to use `net.neoforged.gradle.userdev` plugin version `7.0.163`
 - Set Java toolchain to Java 21 (required for NeoForge 1.21.x)
 - Added ASM version forcing to resolve module conflicts
@@ -119,6 +125,7 @@ dependencies {
 ```
 
 #### 2.2 Gradle Wrapper Update
+
 **File:** `gradle/wrapper/gradle-wrapper.properties`
 
 Updated Gradle to version 8.8 for Java 21 compatibility:
@@ -132,9 +139,11 @@ distributionUrl=https\://services.gradle.org/distributions/gradle-8.8-bin.zip
 ### 3. NeoForge Module Code Changes
 
 #### 3.1 Main Mod Class
+
 **File:** `neoforge/src/main/java/com/clapter/httpautomator/HttpAutomator.java`
 
 The main mod class was updated to:
+
 - Use NeoForge's `@Mod` annotation
 - Register DeferredRegisters to the mod event bus
 - Use NeoForge event system for server lifecycle events
@@ -166,32 +175,33 @@ public class HttpAutomator {
     public HttpAutomator(IEventBus modEventBus, ModContainer modContainer) {
         // Register config
         modContainer.registerConfig(ModConfig.Type.COMMON, HttpServerConfig.COMMON_SPEC);
-        
+
         // Register DeferredRegisters to the mod event bus FIRST
         BlockRegistry.register(modEventBus);
         ItemRegistry.register(modEventBus);
         BlockEntityRegistry.register(modEventBus);
-        
+
         // Initialize common code (registers blocks, items, etc.)
         CommonClass.init();
-        
+
         // Register mod event listeners
         modEventBus.addListener(this::onCommonSetup);
         modEventBus.addListener(this::addCreative);
-        
+
         // Register game event listeners
         NeoForge.EVENT_BUS.addListener(this::onServerStarting);
         NeoForge.EVENT_BUS.addListener(this::onServerStarted);
         NeoForge.EVENT_BUS.addListener(this::onServerStopping);
-        
+
         Constants.LOG.info("HttpAutomator initialized for NeoForge 1.21!");
     }
-    
+
     // ... event handler methods
 }
 ```
 
 #### 3.2 Registry Classes
+
 The registry system was updated to use NeoForge's `DeferredRegister`:
 
 **File:** `neoforge/src/main/java/com/clapter/httpautomator/platform/registry/BlockRegistry.java`
@@ -210,7 +220,7 @@ import java.util.function.Supplier;
 
 public class BlockRegistry implements IBlockRegistry {
 
-    private static final DeferredRegister<Block> BLOCKS = 
+    private static final DeferredRegister<Block> BLOCKS =
         DeferredRegister.create(BuiltInRegistries.BLOCK, Constants.MOD_ID);
 
     @Override
@@ -222,7 +232,7 @@ public class BlockRegistry implements IBlockRegistry {
     public void finishRegistry() {
         // Registration happens via event bus
     }
-    
+
     // Critical: This method must be called from the main mod class
     public static void register(IEventBus eventBus) {
         BLOCKS.register(eventBus);
@@ -231,10 +241,12 @@ public class BlockRegistry implements IBlockRegistry {
 ```
 
 Similar changes were made to:
+
 - `ItemRegistry.java`
 - `BlockEntityRegistry.java`
 
 #### 3.3 Configuration Class
+
 **File:** `neoforge/src/main/java/com/clapter/httpautomator/platform/config/HttpServerConfig.java`
 
 Updated to use NeoForge's config system:
@@ -248,11 +260,11 @@ import org.apache.commons.lang3.tuple.Pair;
 public class HttpServerConfig implements IHttpServerConfig {
     public static final ModConfigSpec COMMON_SPEC;
     public static final HttpServerConfig INSTANCE;
-    
+
     private static ModConfigSpec.ConfigValue<Integer> port;
-    
+
     static {
-        Pair<HttpServerConfig, ModConfigSpec> pair = 
+        Pair<HttpServerConfig, ModConfigSpec> pair =
             new ModConfigSpec.Builder().configure(HttpServerConfig::new);
         INSTANCE = pair.getLeft();
         COMMON_SPEC = pair.getRight();
@@ -282,6 +294,7 @@ public class HttpServerConfig implements IHttpServerConfig {
 ### 4. Resource File Changes
 
 #### 4.1 NeoForge Mod Metadata
+
 **File:** `neoforge/src/main/resources/META-INF/neoforge.mods.toml`
 
 ```toml
@@ -315,6 +328,7 @@ side = "BOTH"
 ```
 
 #### 4.2 Resource Pack Metadata
+
 **File:** `neoforge/src/main/resources/pack.mcmeta`
 
 ```json
@@ -330,23 +344,25 @@ side = "BOTH"
 
 ### 5. API Changes (Forge → NeoForge)
 
-| Forge (1.20.2) | NeoForge (1.21.x) |
-|----------------|-------------------|
-| `MinecraftForge.EVENT_BUS` | `NeoForge.EVENT_BUS` |
-| `ForgeConfigSpec` | `ModConfigSpec` |
-| `@Mod.EventBusSubscriber` | `@EventBusSubscriber` (from neoforged) |
-| `ForgeRegistry` | `DeferredRegister` with `BuiltInRegistries` |
-| `net.minecraftforge.*` packages | `net.neoforged.*` packages |
-| `mods.toml` | `neoforge.mods.toml` |
+| Forge (1.20.2)                  | NeoForge (1.21.x)                           |
+| ------------------------------- | ------------------------------------------- |
+| `MinecraftForge.EVENT_BUS`      | `NeoForge.EVENT_BUS`                        |
+| `ForgeConfigSpec`               | `ModConfigSpec`                             |
+| `@Mod.EventBusSubscriber`       | `@EventBusSubscriber` (from neoforged)      |
+| `ForgeRegistry`                 | `DeferredRegister` with `BuiltInRegistries` |
+| `net.minecraftforge.*` packages | `net.neoforged.*` packages                  |
+| `mods.toml`                     | `neoforge.mods.toml`                        |
 
 ---
 
 ### 6. Common Issues Encountered
 
 #### 6.1 ASM Module Conflict
+
 **Error:** `IllegalStateException: Module named org.objectweb.asm.tree.analysis was already on the JVMs module path`
 
 **Solution:** Force consistent ASM versions in `build.gradle`:
+
 ```gradle
 configurations.all {
     resolutionStrategy {
@@ -360,6 +376,7 @@ configurations.all {
 ```
 
 #### 6.2 Blocks Not Appearing in Creative Inventory
+
 **Error:** Blocks/items not visible in creative mode search.
 
 **Cause:** DeferredRegisters not connected to the mod event bus.
@@ -367,11 +384,13 @@ configurations.all {
 **Solution:** Call `BlockRegistry.register(modEventBus)` in the main mod class constructor **before** `CommonClass.init()`.
 
 #### 6.3 Java Version Mismatch
+
 **Error:** `Unsupported class file major version 65`
 
 **Cause:** NeoForge 1.21.x requires Java 21, but an older Java version was being used.
 
-**Solution:** 
+**Solution:**
+
 1. Install Java 21
 2. Set `JAVA_HOME` to Java 21 path
 3. Update `build.gradle` to use Java 21 toolchain
@@ -381,6 +400,7 @@ configurations.all {
 ## Build and Run Instructions
 
 ### Prerequisites
+
 - Java 21 JDK installed
 - Gradle 8.8+ (handled by wrapper)
 
@@ -417,10 +437,10 @@ $env:JAVA_HOME = "C:\Program Files\Java\jdk-21"
 
 ## Version Compatibility Matrix
 
-| Mod Version | Minecraft | Mod Loader | Java |
-|-------------|-----------|------------|------|
-| 1.0.x | 1.20.2 | Forge 48.x | 17 |
-| 1.1.x | 1.21.1 | NeoForge 21.1.x | 21 |
+| Mod Version | Minecraft | Mod Loader      | Java |
+| ----------- | --------- | --------------- | ---- |
+| 1.0.x       | 1.20.2    | Forge 48.x      | 17   |
+| 1.1.x       | 1.21.1    | NeoForge 21.1.x | 21   |
 
 ---
 
@@ -433,6 +453,5 @@ $env:JAVA_HOME = "C:\Program Files\Java\jdk-21"
 
 ---
 
-*Document created: December 2024*
-*Last updated: December 12, 2025*
-
+_Document created: December 2024_
+_Last updated: December 12, 2025_
