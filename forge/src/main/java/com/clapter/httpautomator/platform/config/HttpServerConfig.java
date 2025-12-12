@@ -1,32 +1,40 @@
 package com.clapter.httpautomator.platform.config;
 
-import com.clapter.httpautomator.platform.config.IHttpServerConfig;
 import net.minecraftforge.common.ForgeConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
 
 public class HttpServerConfig implements IHttpServerConfig {
 
-    //public static final ForgeConfigSpec COMMON_SPEC;
-    private final ForgeConfigSpec.ConfigValue<Integer> port;
+    public static final ForgeConfigSpec COMMON_SPEC;
+    public static final HttpServerConfig INSTANCE;
+
+    private final ForgeConfigSpec.IntValue port;
 
     static {
-        Pair<HttpServerConfig, ForgeConfigSpec> pair = new ForgeConfigSpec.Builder().configure(HttpServerConfig::new);
-
+        Pair<HttpServerConfig, ForgeConfigSpec> pair = new ForgeConfigSpec.Builder()
+                .configure(HttpServerConfig::new);
+        INSTANCE = pair.getLeft();
+        COMMON_SPEC = pair.getRight();
     }
 
-    public HttpServerConfig(ForgeConfigSpec.Builder builder) {
+    private HttpServerConfig(ForgeConfigSpec.Builder builder) {
         builder.push("Http Server Settings");
-
         port = builder
                 .comment("Http Server Port")
-                .define("port", 8080);
-
+                .defineInRange("port", 8080, 0, 999_999);
         builder.pop();
+    }
+
+    /**
+     * Public zero-argument constructor required by the service loader.
+     * Reuses the statically created instance so the Forge config spec is shared.
+     */
+    public HttpServerConfig() {
+        this.port = INSTANCE.port;
     }
 
     @Override
     public int getPort() {
-        return COMMON_SPEC.getInt("port");
+        return port.get();
     }
-
 }
