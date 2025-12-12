@@ -6,7 +6,9 @@ plugins {
 subprojects {
     apply plugin: 'java'
 
-    java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+    // Use Java 21 for NeoForge (1.21.x), Java 17 for Forge (1.20.x)
+    def javaVersion = project.name == 'neoforge' ? 21 : 17
+    java.toolchain.languageVersion = JavaLanguageVersion.of(javaVersion)
     java.withSourcesJar()
     java.withJavadocJar()
         
@@ -57,9 +59,10 @@ subprojects {
     }
 
     tasks.withType(JavaCompile).configureEach {
-    
         it.options.encoding = 'UTF-8'
-        it.options.getRelease().set(17)
+        // Use Java 21 for NeoForge, Java 17 for Forge
+        def releaseVersion = project.name == 'neoforge' ? 21 : 17
+        it.options.getRelease().set(releaseVersion)
     }
 
     processResources {

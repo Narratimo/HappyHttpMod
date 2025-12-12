@@ -9,7 +9,7 @@ public class HttpServerConfig implements IHttpServerConfig {
     public static final ForgeConfigSpec COMMON_SPEC;
     public static final HttpServerConfig INSTANCE;
     
-    private final ForgeConfigSpec.ConfigValue<Integer> port;
+    private static ForgeConfigSpec.ConfigValue<Integer> port;
 
     static {
         Pair<HttpServerConfig, ForgeConfigSpec> pair = new ForgeConfigSpec.Builder().configure(HttpServerConfig::new);
@@ -17,6 +17,11 @@ public class HttpServerConfig implements IHttpServerConfig {
         COMMON_SPEC = pair.getRight();
     }
 
+    // Required no-arg constructor for ServiceLoader
+    public HttpServerConfig() {
+    }
+
+    // Constructor used by ForgeConfigSpec.Builder
     public HttpServerConfig(ForgeConfigSpec.Builder builder) {
         builder.push("Http Server Settings");
 
@@ -29,7 +34,7 @@ public class HttpServerConfig implements IHttpServerConfig {
 
     @Override
     public int getPort() {
-        return port.get();
+        return port != null ? port.get() : 8080;
     }
 
 }
