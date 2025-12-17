@@ -29,8 +29,8 @@ public class HttpServerImpl implements IHttpServer {
     }
 
     public boolean startServer() throws IOException {
-        System.out.println("PORT: "+Services.HTTP_CONFIG.getPort());
-        server = HttpServer.create(new InetSocketAddress(8080), 0);
+        System.out.println("PORT: " + Services.HTTP_CONFIG.getPort());
+        server = HttpServer.create(new InetSocketAddress(Services.HTTP_CONFIG.getPort()), 0);
         server.setExecutor(null); // creates a default executor
         server.start();
         this.handleHandlersInQueue();
