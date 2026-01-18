@@ -12,12 +12,18 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.util.Enumeration;
+
 public class HttpReceiverSettingsScreen extends Screen {
 
     private static Component TITLE = Component.translatable("gui."+ Constants.MOD_ID + ".http_receiver_settings_screen");
     private static Component SAVE_TEXT = Component.translatable("gui."+ Constants.MOD_ID + ".http_receiver_startbutton");
     private static Component POWER_MODE_LABEL = Component.translatable("gui."+ Constants.MOD_ID + ".power_mode_label");
     private static Component TIMER_LABEL = Component.translatable("gui."+ Constants.MOD_ID + ".timer_label");
+    private static Component PORT_LABEL = Component.translatable("gui."+ Constants.MOD_ID + ".port_label");
+    private static Component IP_LABEL = Component.translatable("gui."+ Constants.MOD_ID + ".ip_label");
 
     private final int screenWidth;
     private final int screenHeight;
@@ -149,6 +155,35 @@ public class HttpReceiverSettingsScreen extends Screen {
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
+
+        // Display port and IP info below save button
+        int port = Services.HTTP_CONFIG.getPort();
+        String localIp = getLocalIpAddress();
+
+        int infoY = topPos + 85;
+        guiGraphics.drawString(font, PORT_LABEL.getString() + ": " + port, leftPos, infoY, 0xAAAAAA);
+        guiGraphics.drawString(font, IP_LABEL.getString() + ": " + localIp, leftPos, infoY + 12, 0xAAAAAA);
+    }
+
+    private String getLocalIpAddress() {
+        try {
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface iface = interfaces.nextElement();
+                if (iface.isLoopback() || !iface.isUp()) continue;
+
+                Enumeration<InetAddress> addresses = iface.getInetAddresses();
+                while (addresses.hasMoreElements()) {
+                    InetAddress addr = addresses.nextElement();
+                    if (addr instanceof java.net.Inet4Address) {
+                        return addr.getHostAddress();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Fallback to localhost
+        }
+        return "127.0.0.1";
     }
 
     @Override

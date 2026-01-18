@@ -11,6 +11,8 @@
   "gui.eirarelay.powered_type_timer": "Timer",
   "gui.eirarelay.timer_unit_ticks": "Ticks",
   "gui.eirarelay.timer_unit_seconds": "Seconds",
+  "gui.eirarelay.port_label": "Port",
+  "gui.eirarelay.ip_label": "Local IP",
   "block.eirarelay.receiver": "HTTP Receiver",
   "block.eirarelay.sender": "HTTP Sender"
 }
