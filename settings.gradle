@@ -26,7 +26,8 @@ plugins {
 
 // This should match the folder name of the project, or else IDEA may complain (see https://youtrack.jetbrains.com/issue/IDEA-317606)
 rootProject.name = 'HttpAutomator'
-//include("common")  // Temporarily disabled - code moved to loader modules
+// common and forge are for MC 1.20.2 - disabled until version updated to 1.21.1
+//include("common")
 //include("fabric")
-//include("forge")   // Disabled - porting to NeoForge 1.21
+//include("forge")
 include("neoforge")
