@@ -11,6 +11,9 @@
   "gui.eirarelay.powered_type_timer": "Tidtaker",
   "gui.eirarelay.timer_unit_ticks": "Tikk",
   "gui.eirarelay.timer_unit_seconds": "Sekunder",
+  "gui.eirarelay.port_label": "Port",
+  "gui.eirarelay.ip_label": "Lokal IP",
+  "gui.eirarelay.test_button": "Test",
   "block.eirarelay.receiver": "HTTP Mottaker",
   "block.eirarelay.sender": "HTTP Sender"
 }
