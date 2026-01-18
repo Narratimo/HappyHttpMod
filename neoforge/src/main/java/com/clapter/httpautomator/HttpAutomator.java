@@ -67,6 +67,9 @@ public class HttpAutomator {
             if (ModBlocks.httpReceiverBlock != null) {
                 event.accept(new ItemStack(ModBlocks.httpReceiverBlock));
             }
+            if (ModBlocks.httpSenderBlock != null) {
+                event.accept(new ItemStack(ModBlocks.httpSenderBlock));
+            }
         }
     }
 }

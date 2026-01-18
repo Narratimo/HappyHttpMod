@@ -1,6 +1,8 @@
 package com.clapter.httpautomator;
 
+import com.clapter.httpautomator.http.HttpClientImpl;
 import com.clapter.httpautomator.http.HttpServerImpl;
+import com.clapter.httpautomator.http.api.IHttpClient;
 import com.clapter.httpautomator.http.api.IHttpServer;
 import com.clapter.httpautomator.registry.ModBlockEntities;
 import com.clapter.httpautomator.registry.ModBlocks;
@@ -12,6 +14,7 @@ import java.io.IOException;
 public class CommonClass {
 
     public static final IHttpServer HTTP_SERVER = new HttpServerImpl();
+    public static final IHttpClient HTTP_CLIENT = new HttpClientImpl();
 
     public static void init() {
         ModBlocks.registerBlocks();

@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=true": {
+      "model": "httpautomator:block/sender_lit"
+    },
+    "lit=false": {
+      "model": "httpautomator:block/sender"
+    }
+  }
+}
