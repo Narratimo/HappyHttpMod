@@ -138,3 +138,4 @@ All planned UX improvements are complete. Remaining backlog (deferred indefinite
 | 63 | feature/inline-testing | Test button for HTTP Sender | ✅ |
 | 64 | feature/norwegian-translations | Norwegian translations | ✅ |
 | 65 | feature/auth-and-discord | Auth helpers, Discord integration, parameter editor | ✅ |
+| 66 | feature/webhook-security | Secret token validation for HTTP Receiver | ✅ |
