@@ -20,6 +20,9 @@
   "gui.eirarelay.auth_type_basic": "Basic",
   "gui.eirarelay.auth_type_custom": "Custom",
   "gui.eirarelay.discord_button": "Discord",
+  "gui.eirarelay.params_label": "Params:",
+  "gui.eirarelay.add_button": "+",
+  "gui.eirarelay.clear_button": "X",
   "block.eirarelay.receiver": "HTTP Receiver",
   "block.eirarelay.sender": "HTTP Sender"
 }

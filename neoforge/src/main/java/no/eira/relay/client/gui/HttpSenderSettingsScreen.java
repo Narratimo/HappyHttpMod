@@ -7,6 +7,7 @@ import no.eira.relay.enums.EnumHttpMethod;
 import no.eira.relay.enums.EnumPoweredType;
 import no.eira.relay.enums.EnumTimerUnit;
 import no.eira.relay.network.packet.SUpdateHttpSenderValuesPacket;
+import no.eira.relay.utils.JsonUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.minecraft.client.gui.components.Button;
@@ -21,6 +22,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class HttpSenderSettingsScreen extends Screen {
@@ -32,6 +35,9 @@ public class HttpSenderSettingsScreen extends Screen {
     private static final Component TEST_TEXT = Component.translatable("gui." + Constants.MOD_ID + ".test_button");
     private static final Component AUTH_LABEL = Component.translatable("gui." + Constants.MOD_ID + ".auth_label");
     private static final Component DISCORD_TEXT = Component.translatable("gui." + Constants.MOD_ID + ".discord_button");
+    private static final Component PARAMS_LABEL = Component.translatable("gui." + Constants.MOD_ID + ".params_label");
+    private static final Component ADD_TEXT = Component.translatable("gui." + Constants.MOD_ID + ".add_button");
+    private static final Component CLEAR_TEXT = Component.translatable("gui." + Constants.MOD_ID + ".clear_button");
 
     private final int screenWidth;
     private final int screenHeight;
@@ -51,6 +57,10 @@ public class HttpSenderSettingsScreen extends Screen {
     private EditBox authValueInput;
     private EditBox customHeaderNameInput;
     private EditBox customHeaderValueInput;
+    private EditBox paramKeyInput;
+    private EditBox paramValueInput;
+    private Button addParamButton;
+    private Button clearParamsButton;
 
     private String urlText;
     private String testResult = "";
@@ -63,11 +73,14 @@ public class HttpSenderSettingsScreen extends Screen {
     private String authValue;
     private String customHeaderName;
     private String customHeaderValue;
+    private Map<String, String> parameterMap;
+    private String paramKey = "";
+    private String paramValue = "";
 
     public HttpSenderSettingsScreen(HttpSenderBlockEntity blockEntity) {
         super(TITLE);
         screenWidth = 250;
-        screenHeight = 210;
+        screenHeight = 270;
         this.blockEntity = blockEntity;
 
         // Initialize from block entity values
@@ -81,6 +94,7 @@ public class HttpSenderSettingsScreen extends Screen {
         this.authValue = values.authValue;
         this.customHeaderName = values.customHeaderName;
         this.customHeaderValue = values.customHeaderValue;
+        this.parameterMap = new HashMap<>(values.parameterMap);
     }
 
     @Override
@@ -162,24 +176,52 @@ public class HttpSenderSettingsScreen extends Screen {
         this.customHeaderValueInput.setHint(Component.literal("Header value"));
         addRenderableWidget(customHeaderValueInput);
 
+        // Parameter key input
+        this.paramKeyInput = new EditBox(font, leftPos + 10, topPos + 180, 80, 20, Component.empty());
+        this.paramKeyInput.setMaxLength(64);
+        this.paramKeyInput.setResponder(text -> paramKey = text);
+        this.paramKeyInput.setHint(Component.literal("Key"));
+        addRenderableWidget(paramKeyInput);
+
+        // Parameter value input
+        this.paramValueInput = new EditBox(font, leftPos + 95, topPos + 180, 90, 20, Component.empty());
+        this.paramValueInput.setMaxLength(256);
+        this.paramValueInput.setResponder(text -> paramValue = text);
+        this.paramValueInput.setHint(Component.literal("Value"));
+        addRenderableWidget(paramValueInput);
+
+        // Add parameter button
+        this.addParamButton = addRenderableWidget(Button.builder(
+                ADD_TEXT, this::handleAddParamButton)
+                .bounds(leftPos + 190, topPos + 180, 25, 20)
+                .build()
+        );
+
+        // Clear parameters button
+        this.clearParamsButton = addRenderableWidget(Button.builder(
+                CLEAR_TEXT, this::handleClearParamsButton)
+                .bounds(leftPos + 218, topPos + 180, 25, 20)
+                .build()
+        );
+
         // Save button
         this.saveButton = addRenderableWidget(Button.builder(
                 SAVE_TEXT, this::handleSaveButton)
-                .bounds(leftPos + 10, topPos + 175, 70, 20)
+                .bounds(leftPos + 10, topPos + 235, 70, 20)
                 .build()
         );
 
         // Test button
         this.testButton = addRenderableWidget(Button.builder(
                 TEST_TEXT, this::handleTestButton)
-                .bounds(leftPos + 85, topPos + 175, 70, 20)
+                .bounds(leftPos + 85, topPos + 235, 70, 20)
                 .build()
         );
 
         // Discord preset button
         this.discordButton = addRenderableWidget(Button.builder(
                 DISCORD_TEXT, this::handleDiscordButton)
-                .bounds(leftPos + 160, topPos + 175, 80, 20)
+                .bounds(leftPos + 160, topPos + 235, 80, 20)
                 .build()
         );
 
@@ -248,6 +290,25 @@ public class HttpSenderSettingsScreen extends Screen {
         testResultColor = 0x55FFFF;
     }
 
+    private void handleAddParamButton(Button button) {
+        if (paramKey != null && !paramKey.isEmpty()) {
+            parameterMap.put(paramKey, paramValue != null ? paramValue : "");
+            // Clear inputs after adding
+            paramKeyInput.setValue("");
+            paramValueInput.setValue("");
+            paramKey = "";
+            paramValue = "";
+            testResult = "Added param. Total: " + parameterMap.size();
+            testResultColor = 0x55FF55;
+        }
+    }
+
+    private void handleClearParamsButton(Button button) {
+        parameterMap.clear();
+        testResult = "Parameters cleared.";
+        testResultColor = 0xFFFF55;
+    }
+
     private void handleSaveButton(Button button) {
         if (this.checkValues()) {
             HttpSenderBlockEntity.Values values = new HttpSenderBlockEntity.Values();
@@ -260,8 +321,7 @@ public class HttpSenderSettingsScreen extends Screen {
             values.authValue = this.authValue;
             values.customHeaderName = this.customHeaderName;
             values.customHeaderValue = this.customHeaderValue;
-            // Preserve parameter map from block entity
-            values.parameterMap = blockEntity.getValues().parameterMap;
+            values.parameterMap = this.parameterMap;
 
             PacketDistributor.sendToServer(new SUpdateHttpSenderValuesPacket(
                     this.blockEntity.getBlockPos(),
@@ -310,8 +370,9 @@ public class HttpSenderSettingsScreen extends Screen {
                 }
 
                 if (httpMethod == EnumHttpMethod.POST) {
+                    String jsonBody = JsonUtils.parametersFromMapToString(parameterMap);
                     requestBuilder.header("Content-Type", "application/json")
-                            .POST(HttpRequest.BodyPublishers.ofString("{}", StandardCharsets.UTF_8));
+                            .POST(HttpRequest.BodyPublishers.ofString(jsonBody, StandardCharsets.UTF_8));
                 } else {
                     requestBuilder.GET();
                 }
@@ -343,10 +404,22 @@ public class HttpSenderSettingsScreen extends Screen {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         guiGraphics.drawString(font, URL_LABEL, leftPos + 10, topPos + 18, 0xFFFFFF);
         guiGraphics.drawString(font, AUTH_LABEL, leftPos + 10, topPos + 108, 0xFFFFFF);
+        guiGraphics.drawString(font, PARAMS_LABEL, leftPos + 10, topPos + 168, 0xFFFFFF);
+
+        // Display current parameters summary
+        String paramSummary = "(" + parameterMap.size() + ")";
+        if (!parameterMap.isEmpty()) {
+            String firstKey = parameterMap.keySet().iterator().next();
+            paramSummary = firstKey + "=" + parameterMap.get(firstKey);
+            if (parameterMap.size() > 1) {
+                paramSummary += " (+" + (parameterMap.size() - 1) + ")";
+            }
+        }
+        guiGraphics.drawString(font, paramSummary, leftPos + 70, topPos + 168, 0xAAAAAA);
 
         // Display test result below buttons
         if (!testResult.isEmpty()) {
-            guiGraphics.drawString(font, testResult, leftPos + 10, topPos + 198, testResultColor);
+            guiGraphics.drawString(font, testResult, leftPos + 10, topPos + 258, testResultColor);
         }
     }
 
