@@ -11,15 +11,26 @@
 | **Mod Name** | Eira Relay |
 | **Mod ID** | `eirarelay` |
 | **Package** | `no.eira.relay` |
-| **Active Platform** | NeoForge 1.21.1 |
-| **Java Version** | 21 |
-| **Status** | ✅ Complete - Both blocks functional |
+| **Status** | ✅ Multi-version support |
+
+### Multi-Version Architecture
+
+| Module | MC Version | Java | Status |
+|--------|------------|------|--------|
+| **neoforge** | 1.21.1 | 21 | ✅ Active - Full features |
+| **forge** | 1.20.2 | 17 | ✅ Active - HTTP Receiver only |
+| **common** | 1.20.2 | 17 | ✅ Shared code for forge |
+| **fabric** | 1.20.2 | 17 | ⏸️ Disabled - Incomplete |
 
 ## Quick Start
 
 ```bash
-# Build NeoForge module
-./gradlew :neoforge:build
+# Build all active modules
+./gradlew build
+
+# Build specific module
+./gradlew :neoforge:build   # MC 1.21.1
+./gradlew :forge:build      # MC 1.20.2
 
 # Run client
 ./gradlew :neoforge:runClient
@@ -29,7 +40,7 @@
 
 ```
 EiraRelay/
-├── neoforge/                    # NeoForge 1.21.1 (ACTIVE)
+├── neoforge/                    # NeoForge 1.21.1 / Java 21 (ACTIVE)
 │   └── src/main/java/no/eira/relay/
 │       ├── EiraRelay.java       # Mod entry point
 │       ├── CommonClass.java     # HTTP server/client lifecycle
@@ -44,9 +55,9 @@ EiraRelay/
 │       ├── enums/               # EnumHttpMethod, EnumPoweredType, EnumTimerUnit
 │       ├── mixin/               # Client mixins
 │       └── utils/               # JsonUtils, NBTConverter, QueryBuilder
-├── common/                      # Disabled (MC 1.20.2) - no.eira.relay
-├── forge/                       # Disabled (MC 1.20.2) - no.eira.relay
-├── fabric/                      # Disabled (MC 1.20.2) - no.eira.relay
+├── common/                      # MC 1.20.2 / Java 17 - Shared code
+├── forge/                       # MC 1.20.2 / Java 17 - HTTP Receiver only
+├── fabric/                      # MC 1.20.2 / Java 17 - Disabled (incomplete)
 └── doc/                         # Documentation
 ```
 
@@ -104,13 +115,11 @@ neoforge/build/libs/Eira Relay-neoforge-1.21.1-1.1.0.jar
 | `refactor/*` | Code refactoring |
 | `docs/*` | Documentation updates |
 
-## Next Action: Port common/forge/fabric to MC 1.21.1
+## Next Actions
 
-Now that all modules use `no.eira.relay` package, the next step is to port common/forge/fabric to MC 1.21.1:
-1. Update gradle.properties for MC 1.21.1 / Java 21
-2. Update Forge/Fabric API dependencies
-3. Re-enable modules in settings.gradle
-4. Port code to match neoforge (HTTP Sender, power modes, utilities)
+1. **Port HTTP Sender to forge** - Add HttpSenderBlock to MC 1.20.2 forge module
+2. **Port power modes to forge** - Add EnumPoweredType, EnumTimerUnit to forge
+3. **Complete fabric module** - Finish fabric implementation for MC 1.20.2
 
 ## Completed PRs
 
@@ -119,3 +128,4 @@ Now that all modules use `no.eira.relay` package, the next step is to port commo
 | 53 | refactor/rename-eira-relay | Rename to Eira Relay | ✅ |
 | 54 | feature/power-modes | Power modes (Toggle/Timer) | ✅ |
 | 55 | refactor/rename-common-forge-fabric-packages | Rename packages in common/forge/fabric | ✅ |
+| 56 | feature/multi-version-support | Enable multi-version builds | 🔄 In Progress |
