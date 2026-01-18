@@ -92,12 +92,12 @@ public class HttpReceiverBlockEntity extends BlockEntity {
         }
         setChanged();
         if (!this.getLevel().isClientSide) {
-            HttpReceiverBlockHandler.create(this, this.values.url);
+            HttpReceiverBlockHandler.create(this, this.values.url, this.values.secretToken);
         }
     }
 
     private void postLoad() {
-        HttpReceiverBlockHandler.create(this, this.values.url);
+        HttpReceiverBlockHandler.create(this, this.values.url, this.values.secretToken);
     }
 
     public Values getValues() {
@@ -112,6 +112,7 @@ public class HttpReceiverBlockEntity extends BlockEntity {
         this.values.poweredType = EnumPoweredType.getById(compound.getInt("poweredType"));
         this.values.timerUnit = EnumTimerUnit.getById(compound.getInt("timerUnit"));
         this.values.timer = compound.getFloat("timer");
+        this.values.secretToken = compound.getString("secretToken");
         this.postLoad();
     }
 
@@ -123,6 +124,7 @@ public class HttpReceiverBlockEntity extends BlockEntity {
         compound.putInt("poweredType", this.values.poweredType.getId());
         compound.putInt("timerUnit", this.values.timerUnit.getId());
         compound.putFloat("timer", this.values.timer);
+        compound.putString("secretToken", this.values.secretToken);
         nbt.put(Constants.MOD_ID, compound);
     }
 
@@ -132,12 +134,14 @@ public class HttpReceiverBlockEntity extends BlockEntity {
         public EnumPoweredType poweredType = EnumPoweredType.SWITCH;
         public float timer = 20; // Default 20 ticks = 1 second
         public EnumTimerUnit timerUnit = EnumTimerUnit.TICKS;
+        public String secretToken = "";
 
         public void writeValues(FriendlyByteBuf buf) {
             buf.writeUtf(this.url);
             buf.writeEnum(this.poweredType);
             buf.writeFloat(this.timer);
             buf.writeEnum(this.timerUnit);
+            buf.writeUtf(this.secretToken);
         }
 
         public static Values readBuffer(FriendlyByteBuf buf) {
@@ -146,6 +150,7 @@ public class HttpReceiverBlockEntity extends BlockEntity {
             values.poweredType = buf.readEnum(EnumPoweredType.class);
             values.timer = buf.readFloat();
             values.timerUnit = buf.readEnum(EnumTimerUnit.class);
+            values.secretToken = buf.readUtf();
             return values;
         }
 
@@ -154,6 +159,7 @@ public class HttpReceiverBlockEntity extends BlockEntity {
             this.poweredType = values.poweredType;
             this.timer = values.timer;
             this.timerUnit = values.timerUnit;
+            this.secretToken = values.secretToken;
         }
     }
 }

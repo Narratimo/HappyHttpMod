@@ -23,6 +23,7 @@
   "gui.eirarelay.params_label": "Params:",
   "gui.eirarelay.add_button": "+",
   "gui.eirarelay.clear_button": "X",
+  "gui.eirarelay.token_label": "Token:",
   "block.eirarelay.receiver": "HTTP Mottaker",
   "block.eirarelay.sender": "HTTP Sender"
 }
