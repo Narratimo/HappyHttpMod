@@ -6,7 +6,9 @@ plugins {
 subprojects {
     apply plugin: 'java'
 
-    java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+    // Use Java 21 for NeoForge (1.21.x), Java 17 for Forge (1.20.x)
+    def javaVersion = project.name == 'neoforge' ? 21 : 17
+    java.toolchain.languageVersion = JavaLanguageVersion.of(javaVersion)
     java.withSourcesJar()
     java.withJavadocJar()
         
@@ -43,15 +45,24 @@ subprojects {
             url = 'https://repo.spongepowered.org/repository/maven-public/'
         }
         maven {
+            name = 'Forge'
+            url = 'https://maven.minecraftforge.net/'
+        }
+        maven {
+            name = 'Minecraft Libraries'
+            url = 'https://libraries.minecraft.net/'
+        }
+        maven {
             name = 'BlameJared Maven (JEI / CraftTweaker / Bookshelf)'
             url = 'https://maven.blamejared.com'
         }
     }
 
     tasks.withType(JavaCompile).configureEach {
-    
         it.options.encoding = 'UTF-8'
-        it.options.getRelease().set(17)
+        // Use Java 21 for NeoForge, Java 17 for Forge
+        def releaseVersion = project.name == 'neoforge' ? 21 : 17
+        it.options.getRelease().set(releaseVersion)
     }
 
     processResources {

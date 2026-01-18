@@ -1,0 +1,27 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "All Rights Reserved"
+issueTrackerURL = "https://github.com/clapter/httpautomator/issues"
+
+[[mods]]
+modId = "httpautomator"
+version = "1.1.0"
+displayName = "HTTP Automator"
+authors = "Clapter"
+description = '''
+HTTP automation mod for Minecraft. Connect your Minecraft world to external services.
+'''
+
+[[dependencies.httpautomator]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.httpautomator]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21,1.22)"
+ordering = "NONE"
+side = "BOTH"

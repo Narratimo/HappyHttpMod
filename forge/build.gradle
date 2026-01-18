@@ -36,7 +36,6 @@ minecraft {
             mods {
                 modClientRun {
                     source sourceSets.main
-                    source project(":common").sourceSets.main
                 }
             }
         }
@@ -50,7 +49,6 @@ minecraft {
             mods {
                 modServerRun {
                     source sourceSets.main
-                    source project(":common").sourceSets.main
                 }
             }
         }
@@ -65,33 +63,36 @@ minecraft {
             mods {
                 modDataRun {
                     source sourceSets.main
-                    source project(":common").sourceSets.main
                 }
             }
         }
     }
 }
 
-sourceSets.main.resources.srcDir 'src/generated/resources'
+// Include common source code directly
+sourceSets {
+    main {
+        java {
+            srcDir "${rootProject.projectDir}/common/src/main/java"
+        }
+        resources {
+            srcDir "${rootProject.projectDir}/common/src/main/resources"
+            srcDir 'src/generated/resources'
+        }
+    }
+}
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-    compileOnly project(":common")
     annotationProcessor("org.spongepowered:mixin:0.8.5-SNAPSHOT:processor")
 }
 
 tasks.withType(JavaCompile).configureEach {
-    source(project(":common").sourceSets.main.allSource)
-}
-tasks.withType(Javadoc).configureEach {
-    source(project(":common").sourceSets.main.allJava)
-}
-tasks.named("sourcesJar", Jar) {
-    from(project(":common").sourceSets.main.allSource)
+    options.encoding = 'UTF-8'
 }
 
-processResources {
-    from project(":common").sourceSets.main.resources
+tasks.named("sourcesJar", Jar) {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 jar.finalizedBy('reobfJar')

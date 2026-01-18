@@ -17,11 +17,12 @@ public class HttpServerConfig implements IHttpServerConfig {
         COMMON_SPEC = pair.getRight();
     }
 
+    // Constructor used by ForgeConfigSpec.Builder
     private HttpServerConfig(ForgeConfigSpec.Builder builder) {
         builder.push("Http Server Settings");
         port = builder
                 .comment("Http Server Port")
-                .defineInRange("port", 8080, 0, 999_999);
+                .defineInRange("port", 8080, 0, 65535);
         builder.pop();
     }
 

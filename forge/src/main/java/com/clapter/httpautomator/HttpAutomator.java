@@ -3,11 +3,15 @@ package com.clapter.httpautomator;
 import com.clapter.httpautomator.blockentity.HttpReceiverBlockEntity;
 import com.clapter.httpautomator.platform.config.HttpServerConfig;
 import com.clapter.httpautomator.platform.network.PacketHandler;
+import com.clapter.httpautomator.registry.ModBlocks;
 import net.minecraft.client.telemetry.events.WorldLoadEvent;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.level.ChunkEvent;
 import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
@@ -32,6 +36,8 @@ public class HttpAutomator {
         MinecraftForge.EVENT_BUS.addListener(this::onServerStarted);
         MinecraftForge.EVENT_BUS.addListener(this::onServerStopping);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onFMLCommonSetup);
+        // Register creative tab listener
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::addCreative);
     }
 
     private void onServerStarting(ServerStartingEvent e){
@@ -48,6 +54,16 @@ public class HttpAutomator {
 
     private void onFMLCommonSetup(FMLCommonSetupEvent e){
         e.enqueueWork(CommonClass::registerPackets);
+    }
+
+    // Add items to Creative Tab
+    private void addCreative(BuildCreativeModeTabContentsEvent event) {
+        // Add to Redstone tab (most appropriate for this mod)
+        if (event.getTabKey() == CreativeModeTabs.REDSTONE_BLOCKS) {
+            if (ModBlocks.httpReceiverBlock != null) {
+                event.accept(new ItemStack(ModBlocks.httpReceiverBlock));
+            }
+        }
     }
 
 }

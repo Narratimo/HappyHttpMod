@@ -1,6 +1,6 @@
 package com.clapter.httpautomator.platform;
 
-import com.clapter.httpautomator.platform.registry.IPlatformHelper;
+import com.clapter.httpautomator.platform.IPlatformHelper;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLLoader;
 

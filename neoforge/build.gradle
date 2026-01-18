@@ -1,64 +1,91 @@
 plugins {
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.gradle.userdev' version '7.0.41'
+    id 'net.neoforged.gradle.userdev' version '7.0.163'
     id 'java-library'
 }
+
+version = project.version
+group = project.group
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'NeoForge'
+        url = 'https://maven.neoforged.net/releases/'
+    }
+}
+
+// Force consistent ASM versions to avoid module conflicts
+configurations.all {
+    resolutionStrategy {
+        force 'org.ow2.asm:asm:9.7'
+        force 'org.ow2.asm:asm-commons:9.7'
+        force 'org.ow2.asm:asm-tree:9.7'
+        force 'org.ow2.asm:asm-util:9.7'
+        force 'org.ow2.asm:asm-analysis:9.7'
+    }
+}
+
 base {
     archivesName = "${mod_name}-neoforge-${minecraft_version}"
 }
 
-// Automatically enable neoforge AccessTransformers if the file exists
-// This location is hardcoded in FML and can not be changed.
-// https://github.com/neoforged/FancyModLoader/blob/a952595eaaddd571fbc53f43847680b00894e0c1/loader/src/main/java/net/neoforged/fml/loading/moddiscovery/ModFile.java#L118
-if (file('src/main/resources/META-INF/accesstransformer.cfg').exists()) {
-    minecraft.accessTransformers.file file('src/main/resources/META-INF/accesstransformer.cfg')
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
+
+sourceSets {
+    main {
+        resources {
+            srcDir 'src/generated/resources'
+        }
+    }
+}
+
 runs {
     configureEach {
-        modSource project.sourceSets.main
+        workingDirectory project.file('run')
+        
+        // Use mod classes directly 
+        modSources.add(project.sourceSets.main)
     }
+    
     client {
-        systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        configure {
+            workingDirectory project.file('run/client')
+        }
     }
+    
     server {
-        systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-        programArgument '--nogui'
-    }
-
-    gameTestServer {
-        systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-    }
-
-    data {
-        programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+        configure {
+            workingDirectory project.file('run/server')
+            programArguments.add('--nogui')
+        }
     }
 }
-
-sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 dependencies {
     implementation "net.neoforged:neoforge:${neoforge_version}"
-    compileOnly project(":common")
-}
-
-// NeoGradle compiles the game, but we don't want to add our common code to the game's code
-Spec<Task> notNeoTask = { Task it -> !it.name.startsWith("neo") } as Spec<Task>
-
-tasks.withType(JavaCompile).matching(notNeoTask).configureEach {
-    source(project(":common").sourceSets.main.allSource)
-}
-
-tasks.withType(Javadoc).matching(notNeoTask).configureEach {
-    source(project(":common").sourceSets.main.allJava)
 }
 
 tasks.named("sourcesJar", Jar) {
-    from(project(":common").sourceSets.main.allSource)
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-tasks.withType(ProcessResources).matching(notNeoTask).configureEach {
-    from project(":common").sourceSets.main.resources
+tasks.named('jar', Jar).configure {
+    manifest {
+        attributes([
+            'Specification-Title'     : mod_name,
+            'Specification-Vendor'    : 'clapter',
+            'Specification-Version'   : project.version,
+            'Implementation-Title'    : mod_name,
+            'Implementation-Version'  : project.version,
+            'Implementation-Vendor'   : 'clapter',
+        ])
+    }
 }
 
 publishing {
