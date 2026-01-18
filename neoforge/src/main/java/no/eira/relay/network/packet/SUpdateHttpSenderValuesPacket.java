@@ -1,42 +1,50 @@
 package no.eira.relay.network.packet;
 
+import no.eira.relay.Constants;
 import no.eira.relay.blockentity.HttpSenderBlockEntity;
-import no.eira.relay.network.IPacketContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.jetbrains.annotations.NotNull;
 
-public class SUpdateHttpSenderValuesPacket extends BasePacket {
+public record SUpdateHttpSenderValuesPacket(BlockPos entityPos, HttpSenderBlockEntity.Values values) implements CustomPacketPayload {
 
-    private final BlockPos entityPos;
-    private final HttpSenderBlockEntity.Values values;
+    public static final Type<SUpdateHttpSenderValuesPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, "update_http_sender"));
 
-    public SUpdateHttpSenderValuesPacket(BlockPos pos, HttpSenderBlockEntity.Values values) {
-        this.entityPos = pos;
-        this.values = values;
+    public static final StreamCodec<FriendlyByteBuf, SUpdateHttpSenderValuesPacket> STREAM_CODEC = StreamCodec.of(
+            SUpdateHttpSenderValuesPacket::encode,
+            SUpdateHttpSenderValuesPacket::decode
+    );
+
+    private static SUpdateHttpSenderValuesPacket decode(FriendlyByteBuf buf) {
+        return new SUpdateHttpSenderValuesPacket(buf.readBlockPos(), HttpSenderBlockEntity.Values.readBuffer(buf));
     }
 
-    public SUpdateHttpSenderValuesPacket(FriendlyByteBuf buf) {
-        this(buf.readBlockPos(), HttpSenderBlockEntity.Values.readBuffer(buf));
-    }
-
-    public void encode(FriendlyByteBuf buf) {
-        buf.writeBlockPos(this.entityPos);
-        this.values.writeValues(buf);
+    private static void encode(FriendlyByteBuf buf, SUpdateHttpSenderValuesPacket packet) {
+        buf.writeBlockPos(packet.entityPos);
+        packet.values.writeValues(buf);
     }
 
     @Override
-    public void handle(IPacketContext context) {
-        if (context.isServerSide()) {
-            if (context.getSender() == null) return;
-            ServerPlayer player = context.getSender();
-            ServerLevel level = player.serverLevel();
-            BlockEntity entity = level.getBlockEntity(this.entityPos);
-            if (entity instanceof HttpSenderBlockEntity sender) {
-                sender.updateValues(this.values);
+    public @NotNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public static void handle(SUpdateHttpSenderValuesPacket packet, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer player) {
+                ServerLevel level = player.serverLevel();
+                BlockEntity entity = level.getBlockEntity(packet.entityPos);
+                if (entity instanceof HttpSenderBlockEntity sender) {
+                    sender.updateValues(packet.values);
+                }
             }
-        }
+        });
     }
 }

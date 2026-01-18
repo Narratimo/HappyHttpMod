@@ -1,5 +1,9 @@
 package no.eira.relay;
 
+import no.eira.relay.network.packet.CHttpSenderOpenGuiPacket;
+import no.eira.relay.network.packet.CSyncHttpReceiverValuesPacket;
+import no.eira.relay.network.packet.SUpdateHttpReceiverValuesPacket;
+import no.eira.relay.network.packet.SUpdateHttpSenderValuesPacket;
 import no.eira.relay.platform.config.HttpServerConfig;
 import no.eira.relay.platform.registry.BlockEntityRegistry;
 import no.eira.relay.platform.registry.BlockRegistry;
@@ -17,6 +21,8 @@ import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 @Mod(Constants.MOD_ID)
 public class EiraRelay {
@@ -36,6 +42,7 @@ public class EiraRelay {
         // Register mod event listeners
         modEventBus.addListener(this::onCommonSetup);
         modEventBus.addListener(this::addCreative);
+        modEventBus.addListener(this::registerPayloads);
 
         // Register game event listeners
         NeoForge.EVENT_BUS.addListener(this::onServerStarting);
@@ -46,7 +53,37 @@ public class EiraRelay {
     }
 
     private void onCommonSetup(FMLCommonSetupEvent event) {
-        event.enqueueWork(CommonClass::registerPackets);
+        // No longer needed - packets registered via RegisterPayloadHandlersEvent
+    }
+
+    private void registerPayloads(RegisterPayloadHandlersEvent event) {
+        PayloadRegistrar registrar = event.registrar(Constants.MOD_ID);
+
+        // Client-bound packets (server -> client)
+        registrar.playToClient(
+                CSyncHttpReceiverValuesPacket.TYPE,
+                CSyncHttpReceiverValuesPacket.STREAM_CODEC,
+                CSyncHttpReceiverValuesPacket::handle
+        );
+        registrar.playToClient(
+                CHttpSenderOpenGuiPacket.TYPE,
+                CHttpSenderOpenGuiPacket.STREAM_CODEC,
+                CHttpSenderOpenGuiPacket::handle
+        );
+
+        // Server-bound packets (client -> server)
+        registrar.playToServer(
+                SUpdateHttpReceiverValuesPacket.TYPE,
+                SUpdateHttpReceiverValuesPacket.STREAM_CODEC,
+                SUpdateHttpReceiverValuesPacket::handle
+        );
+        registrar.playToServer(
+                SUpdateHttpSenderValuesPacket.TYPE,
+                SUpdateHttpSenderValuesPacket.STREAM_CODEC,
+                SUpdateHttpSenderValuesPacket::handle
+        );
+
+        Constants.LOG.info("Registered Eira Relay network packets");
     }
 
     private void onServerStarting(ServerStartingEvent event) {

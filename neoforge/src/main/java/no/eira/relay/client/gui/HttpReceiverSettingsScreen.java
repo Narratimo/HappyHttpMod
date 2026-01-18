@@ -7,6 +7,7 @@ import no.eira.relay.enums.EnumTimerUnit;
 import no.eira.relay.network.packet.SUpdateHttpReceiverValuesPacket;
 import no.eira.relay.platform.Services;
 import net.minecraft.client.gui.GuiGraphics;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
@@ -139,7 +140,7 @@ public class HttpReceiverSettingsScreen extends Screen {
             values.poweredType = this.poweredType;
             values.timer = this.timerValue;
             values.timerUnit = this.timerUnit;
-            Services.PACKET_HANDLER.sendPacketToServer(new SUpdateHttpReceiverValuesPacket(
+            PacketDistributor.sendToServer(new SUpdateHttpReceiverValuesPacket(
                     this.blockEntity.getBlockPos(),
                     values));
 

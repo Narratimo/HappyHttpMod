@@ -3,8 +3,8 @@ package no.eira.relay.block;
 import no.eira.relay.CommonClass;
 import no.eira.relay.blockentity.HttpReceiverBlockEntity;
 import no.eira.relay.network.packet.CSyncHttpReceiverValuesPacket;
-import no.eira.relay.platform.Services;
 import no.eira.relay.registry.ModBlockEntities;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
@@ -54,7 +54,7 @@ public class HttpReceiverBlock extends Block implements EntityBlock {
         if (!level.isClientSide) {
             if(level.getBlockEntity(pos) instanceof HttpReceiverBlockEntity entity) {
                 if(!player.isCreative()) return InteractionResult.FAIL;
-                Services.PACKET_HANDLER.sendPacketToPlayer(new CSyncHttpReceiverValuesPacket(pos, entity.getValues()), (ServerPlayer)player);
+                PacketDistributor.sendToPlayer((ServerPlayer)player, new CSyncHttpReceiverValuesPacket(pos, entity.getValues()));
             }
         }
         return InteractionResult.SUCCESS;

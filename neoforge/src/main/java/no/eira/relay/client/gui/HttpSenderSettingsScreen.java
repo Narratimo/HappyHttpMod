@@ -7,8 +7,8 @@ import no.eira.relay.enums.EnumHttpMethod;
 import no.eira.relay.enums.EnumPoweredType;
 import no.eira.relay.enums.EnumTimerUnit;
 import no.eira.relay.network.packet.SUpdateHttpSenderValuesPacket;
-import no.eira.relay.platform.Services;
 import net.minecraft.client.gui.GuiGraphics;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.EditBox;
@@ -263,7 +263,7 @@ public class HttpSenderSettingsScreen extends Screen {
             // Preserve parameter map from block entity
             values.parameterMap = blockEntity.getValues().parameterMap;
 
-            Services.PACKET_HANDLER.sendPacketToServer(new SUpdateHttpSenderValuesPacket(
+            PacketDistributor.sendToServer(new SUpdateHttpSenderValuesPacket(
                     this.blockEntity.getBlockPos(),
                     values));
 
