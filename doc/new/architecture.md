@@ -1,111 +1,129 @@
 # Technical Architecture: Eira Relay
 
 > **Rebranding:** The mod is being renamed from "Happy HTTP" / "HttpAutomator" to "Eira Relay" (www.eira.no)
-> Package and asset renames are pending.
+> Package rename: `com.clapter.httpautomator` → `no.eira.relay`
 
 ## Project Structure
 
 ```
 EiraRelay/ (currently HappyHttpMod/)
-├── common/                          # Shared code across all platforms
+├── neoforge/                        # NeoForge 1.21.1 (ACTIVE - COMPLETE)
 │   └── src/main/java/com/clapter/httpautomator/
-│       ├── CommonClass.java         # Entry point, HTTP server lifecycle
-│       ├── http/                    # HTTP server implementation
+│       ├── HttpAutomator.java       # Mod entry point
+│       ├── CommonClass.java         # HTTP server/client lifecycle
+│       ├── http/                    # HTTP server and client
+│       │   ├── HttpServerImpl.java  # Embedded HTTP server (localhost:8080)
+│       │   ├── HttpClientImpl.java  # HTTP client for GET/POST requests
+│       │   └── api/                 # Interfaces (IHttpServer, IHttpClient)
 │       ├── block/                   # Block definitions
+│       │   ├── HttpReceiverBlock.java  # Receives HTTP → Redstone
+│       │   └── HttpSenderBlock.java    # Redstone → Sends HTTP
 │       ├── blockentity/             # Block entity implementations
+│       │   ├── HttpReceiverBlockEntity.java
+│       │   └── HttpSenderBlockEntity.java
 │       ├── registry/                # Block, item, entity registries
 │       ├── network/                 # Network packets
-│       ├── client/gui/              # Configuration GUI
-│       ├── platform/                # Platform abstraction interfaces
-│       └── utils/                   # Utility classes
-├── forge/                           # Forge-specific implementation
+│       ├── client/gui/              # Configuration GUIs
+│       ├── platform/                # Platform services
+│       ├── enums/                   # HTTP methods (GET/POST)
+│       └── utils/                   # JsonUtils, NBTConverter, QueryBuilder
+├── common/                          # Shared code (DISABLED - MC 1.20.2)
+├── forge/                           # Forge implementation (DISABLED - MC 1.20.2)
 ├── fabric/                          # Fabric implementation (incomplete)
-├── neoforge/                        # NeoForge implementation (skeleton)
-└── docs/                            # Documentation
+└── doc/                             # Documentation
 ```
 
-## Package Organization
+## Active Platform: NeoForge 1.21.1 ✅ COMPLETE
 
-**Base Package:** `com.clapter.httpautomator`
+**Package:** `com.clapter.httpautomator` (will become `no.eira.relay`)
 
-| Package | Purpose |
-|---------|---------|
-| `http/` | HTTP server, handlers, request processing |
-| `block/` | Minecraft block definitions |
-| `blockentity/` | Block entity state and persistence |
-| `registry/` | Deferred registration for blocks, items, entities |
-| `network/` | Client-server packet communication |
-| `client/gui/` | Configuration screens |
-| `platform/` | Platform abstraction layer |
+| Package | Purpose | Status |
+|---------|---------|--------|
+| `http/` | HTTP server and client implementations | ✅ Complete |
+| `block/` | HttpReceiverBlock, HttpSenderBlock | ✅ Complete |
+| `blockentity/` | Block entity state and persistence | ✅ Complete |
+| `registry/` | Deferred registration for blocks, items, entities | ✅ Complete |
+| `network/` | Client-server packet communication | ✅ Complete |
+| `client/gui/` | Configuration screens (Receiver + Sender) | ✅ Complete |
+| `platform/` | Platform services and config | ✅ Complete |
+| `enums/` | EnumHttpMethod (GET/POST) | ✅ Complete |
+| `utils/` | JsonUtils, NBTConverter, QueryBuilder | ✅ Complete |
 
 ## Core Components
 
-### HTTP Module
+### HTTP Module ✅ COMPLETE
 
 ```
+HTTP Server (for Receivers):
 IHttpServer (interface)
     └── HttpServerImpl
         ├── Uses: com.sun.net.httpserver.HttpServer
         ├── Port: Configurable (default 8080)
-        └── Handler registration queue system
+        ├── Bind: localhost (127.0.0.1) for security ✅ Fixed
+        ├── Handler registration with URL mapping
+        ├── Handler cleanup on unregister ✅ Fixed (memory leak)
+        └── unregisterHandler() method for block removal
 
-IHttpHandler (interface)
-    └── HttpReceiverBlockHandler
-        ├── Handles POST requests to custom endpoints
-        └── Triggers onSignal() on subscribed block entities
+HTTP Client (for Senders):
+IHttpClient (interface)
+    └── HttpClientImpl
+        ├── Uses: java.net.http.HttpClient
+        ├── Supports: GET and POST methods
+        ├── JSON body for POST requests
+        └── Query string for GET requests
 ```
 
-### Block Module
+### Block Module ✅ COMPLETE
 
 ```
-HttpReceiverBlock (extends PoweredBlock, implements EntityBlock)
+HttpReceiverBlock (implements EntityBlock)
     ├── POWERED state property
     ├── Redstone signal emission (strength 15)
-    └── GUI interaction (creative mode only)
+    ├── GUI interaction (creative mode only)
+    └── Handler cleanup on removal ✅ Fixed
 
 HttpReceiverBlockEntity
     ├── Stores URL configuration
-    ├── NBT persistence (load/saveAdditional)
+    ├── NBT persistence
     └── Creates/registers HTTP handler
+
+HttpSenderBlock (implements EntityBlock) ✅ Ported to NeoForge 1.21.1
+    ├── LIT state property (shows active state)
+    ├── Triggers HTTP request on redstone signal
+    ├── GUI interaction (creative mode only)
+    └── Handler cleanup on removal ✅ Fixed
+
+HttpSenderBlockEntity ✅ Ported to NeoForge 1.21.1
+    ├── Stores URL, parameters, HTTP method
+    ├── NBT persistence (uses JSON for parameter map)
+    └── Executes HTTP requests via HttpClientImpl
 ```
 
 ### Registry Module
 
 ```
-ModBlocks      → DeferredRegister<Block>
-ModItems       → DeferredRegister<Item>
-ModBlockEntities → DeferredRegister<BlockEntityType>
-ModNetworkPackets → Packet registration
+ModBlocks      → httpReceiverBlock, httpSenderBlock
+ModItems       → Block items for creative tab
+ModBlockEntities → httpReceiverBlockEntity, httpSenderBlockEntity
+ModNetworkPackets → All network packets
 ```
 
 ### Network Module
 
 ```
 BasePacket (abstract)
-    ├── CSyncHttpReceiverValuesPacket (server → client)
-    │   └── Triggers: Opens settings screen
-    └── SUpdateHttpReceiverValuesPacket (client → server)
-        └── Triggers: Updates block entity, registers handler
-```
-
-### Platform Abstraction
-
-```
-Services (central locator)
-    └── Uses ImplLoader (ServiceLoader pattern)
-
-Interfaces:
-├── IHttpServerConfig → Port configuration
-├── IPlatformHelper → Platform detection
-├── IBlockRegistry → Block registration
-├── IItemRegistry → Item registration
-├── IBlockEntitiesRegistry → Entity registration
-└── IPacketHandler → Network packets
+    ├── HTTP Receiver packets:
+    │   ├── CSyncHttpReceiverValuesPacket (server → client)
+    │   └── SUpdateHttpReceiverValuesPacket (client → server)
+    │
+    └── HTTP Sender packets:
+        ├── CHttpSenderOpenGuiPacket (server → client)
+        └── SUpdateHttpSenderValuesPacket (client → server)
 ```
 
 ## Data Flow Diagrams
 
-### HTTP Request Flow
+### HTTP Receiver Flow (Incoming Webhook)
 
 ```
 External HTTP Client
@@ -113,14 +131,14 @@ External HTTP Client
         │ POST /custom-endpoint
         ▼
 ┌─────────────────┐
-│ HttpServerImpl  │ (port 8080)
+│ HttpServerImpl  │ (localhost:8080)
 └────────┬────────┘
          │ URL lookup in handlerMap
          ▼
 ┌─────────────────────────┐
 │ HttpReceiverBlockHandler│
 └────────┬────────────────┘
-         │ onSignal() for each subscriber
+         │ onSignal() on block entity
          ▼
 ┌─────────────────────────┐
 │ HttpReceiverBlockEntity │
@@ -132,33 +150,62 @@ External HTTP Client
 └─────────────────────────┘
 ```
 
-### Configuration Flow
+### HTTP Sender Flow (Outgoing Request)
 
 ```
-Player Right-clicks Block
+Redstone Signal
         │
         ▼
 ┌─────────────────────────┐
-│ HttpReceiverBlock.use() │
-│ (creative mode check)   │
+│ HttpSenderBlock         │
+│ neighborChanged()       │
 └────────┬────────────────┘
-         │ CSyncHttpReceiverValuesPacket
+         │ onPowered()
+         ▼
+┌─────────────────────────┐
+│ HttpSenderBlockEntity   │
+│ onPowered()             │
+└────────┬────────────────┘
+         │ GET or POST based on config
+         ▼
+┌─────────────────────────┐
+│ HttpClientImpl          │
+│ sendGet() / sendPost()  │
+└────────┬────────────────┘
+         │
+         ▼
+External HTTP Server
+```
+
+### Configuration Flow
+
+```
+Player Right-clicks Block (Creative Mode)
+        │
+        ▼
+┌─────────────────────────┐
+│ Block.useWithoutItem()  │
+└────────┬────────────────┘
+         │ Send packet to client
          ▼
 ┌─────────────────────────────┐
-│ HttpReceiverSettingsScreen  │
+│ CSync*Packet / COpen*Packet │
+└────────┬────────────────────┘
+         │ Open GUI on client
+         ▼
+┌─────────────────────────────┐
+│ *SettingsScreen             │
 │ (Client GUI)                │
 └────────┬────────────────────┘
-         │ SUpdateHttpReceiverValuesPacket
+         │ On save, send update packet
          ▼
 ┌─────────────────────────────┐
-│ HttpReceiverBlockEntity     │
-│ updateValues()              │
+│ SUpdate*Packet              │
 └────────┬────────────────────┘
-         │ Register handler
+         │ Update block entity on server
          ▼
 ┌─────────────────────────────┐
-│ HttpServerImpl              │
-│ registerHandler()           │
+│ BlockEntity.updateValues()  │
 └─────────────────────────────┘
 ```
 
@@ -167,62 +214,50 @@ Player Right-clicks Block
 | Pattern | Usage |
 |---------|-------|
 | **Service Loader** | Platform implementation binding via Java SPI |
-| **Factory** | BlockEntityFactory, ImplLoader |
-| **Strategy** | IHttpHandler implementations |
+| **Factory** | BlockEntityFactory for block entity creation |
+| **Strategy** | IHttpHandler implementations for request handling |
 | **Observer** | Block entities subscribe to HTTP handlers by URL |
 | **Command** | Network packets as command objects |
-| **Facade** | CommonClass centralizes platform complexity |
-| **Abstract Factory** | Platform-specific registries |
+| **Facade** | CommonClass centralizes HTTP server/client lifecycle |
 
-## Platform-Specific Implementations
-
-### Forge (`forge/`)
+## NeoForge Implementation Details
 
 | Component | Implementation |
 |-----------|----------------|
 | Entry Point | `HttpAutomator.java` with @Mod annotation |
-| Events | `MinecraftForge.EVENT_BUS` for server lifecycle |
-| Config | `ForgeConfigSpec` for port configuration |
-| Networking | `SimpleChannel` + `PacketDistributor` |
-| Registry | `FMLJavaModLoadingContext.get().getModEventBus()` |
+| Events | `NeoForge.EVENT_BUS` for server lifecycle |
+| Config | `ModConfigSpec` for port configuration |
+| Networking | Custom packet system with FriendlyByteBuf |
+| Registry | DeferredRegister with IEventBus |
+| Mixins | Client-side mixins for title screen |
 
-### NeoForge (`neoforge/`)
+## Security Considerations
 
-**Status:** Skeleton only
-
-| Component | Status |
-|-----------|--------|
-| Entry Point | Basic constructor only |
-| Events | Not implemented |
-| Config | Not implemented |
-| Networking | Not implemented |
-| Registry | Not implemented |
-
-### Fabric (`fabric/`)
-
-**Status:** Incomplete
-
-| Component | Status |
-|-----------|--------|
-| Entry Point | `ModInitializer` implemented |
-| Events | Partial |
-| Config | Not implemented |
-| Networking | Not implemented |
-
-## Key Files Reference
-
-| File | Line Count | Purpose |
-|------|------------|---------|
-| `CommonClass.java` | ~80 | Entry point, server lifecycle |
-| `HttpServerImpl.java` | ~100 | HTTP server implementation |
-| `HttpReceiverBlockHandler.java` | ~60 | Request handling |
-| `HttpReceiverBlock.java` | ~90 | Block behavior |
-| `HttpReceiverBlockEntity.java` | ~80 | Block state persistence |
-| `HttpReceiverSettingsScreen.java` | ~120 | Configuration GUI |
+| Feature | Implementation | Status |
+|---------|----------------|--------|
+| Localhost Binding | Server binds to 127.0.0.1 by default | ✅ Fixed (PR #7) |
+| Creative Mode Only | GUIs only accessible in creative mode | ✅ Implemented |
+| Handler Cleanup | Handlers unregistered when blocks removed | ✅ Fixed (PR #6) |
+| No Authentication | Not implemented (future enhancement) | Backlog |
 
 ## Build System
 
-- **Gradle** with multi-project structure
-- **Java 17** toolchain
-- **Mixin** 0.8.5 for bytecode modification
-- **Platform-specific** build scripts per module
+- **Gradle 8.8** with multi-project structure
+- **Java 21** toolchain (NeoForge 1.21.1 requirement)
+- **NeoGradle 7.0.163** for NeoForge builds
+- **Mixin** for bytecode modification
+
+## Key Files Reference (NeoForge)
+
+| File | Purpose |
+|------|---------|
+| `HttpAutomator.java` | Mod entry point, event registration |
+| `CommonClass.java` | HTTP server/client instances, lifecycle |
+| `HttpServerImpl.java` | HTTP server implementation |
+| `HttpClientImpl.java` | HTTP client for GET/POST |
+| `HttpReceiverBlock.java` | Receiver block behavior |
+| `HttpSenderBlock.java` | Sender block behavior |
+| `HttpReceiverBlockEntity.java` | Receiver state persistence |
+| `HttpSenderBlockEntity.java` | Sender state persistence |
+| `HttpReceiverSettingsScreen.java` | Receiver configuration GUI |
+| `HttpSenderSettingsScreen.java` | Sender configuration GUI |

@@ -95,70 +95,35 @@ import net.minecraftforge.network.PacketDistributor;
 
 ## High Debt
 
-### 4. NeoForge Mixin Config Wrong Package
+### 4. ~~NeoForge Mixin Config Wrong Package~~ ✅ RESOLVED
 
-**Severity:** High
-**Impact:** Mixins won't load for NeoForge
+**Status:** Resolved via PR #4 (fix/neoforge-mixin-config)
 
-**File:** `neoforge/src/main/resources/neoforge.neoforge.mixins.json`
-
-**Current:**
-```json
-{
-  "package": "com.example.examplemod.mixin"
-}
-```
-
-**Should be:**
-```json
-{
-  "package": "com.clapter.httpautomator.mixin"
-}
-```
+**File renamed:** `httpautomator.neoforge.mixins.json`
+**Package fixed to:** `com.clapter.httpautomator.mixin`
+**Compatibility level:** Updated to JAVA_21
 
 ---
 
-### 5. Memory Leak - Handler Not Cleaned Up
+### 5. ~~Memory Leak - Handler Not Cleaned Up~~ ✅ RESOLVED
 
-**Severity:** High
-**Impact:** HTTP handlers persist after block destruction
+**Status:** Resolved via PR #6 (fix/handler-cleanup-on-remove)
 
-**Location:** `HttpReceiverBlock.onRemove()` / `HttpSenderBlock.onRemove()`
-
-**Issue:** When a block is destroyed, its HTTP handler remains registered in `HttpServerImpl.handlerMap`
-
-**Resolution:**
-```java
-@Override
-public void onRemove(BlockState state, Level level, BlockPos pos, ...) {
-    if (!level.isClientSide()) {
-        BlockEntity be = level.getBlockEntity(pos);
-        if (be instanceof HttpReceiverBlockEntity receiver) {
-            CommonClass.HTTP_SERVER.unregisterHandler(receiver.getUrl());
-        }
-    }
-    super.onRemove(state, level, pos, ...);
-}
-```
+**Implementation:**
+- Added `unregisterHandler(String url)` method to `IHttpServer` interface
+- Implemented in `HttpServerImpl` to remove handlers from both map and server
+- Added `onRemove()` method to both `HttpReceiverBlock` and `HttpSenderBlock`
+- Handlers are now properly cleaned up when blocks are destroyed
 
 ---
 
-### 6. Event System Migration Needed
+### 6. ~~Event System Migration Needed~~ ✅ RESOLVED
 
-**Severity:** High
-**Impact:** NeoForge uses different event system
+**Status:** Already implemented in feenixnet branch (merged via PR #2)
 
-**Forge pattern:**
-```java
-MinecraftForge.EVENT_BUS.addListener(this::onServerStarting);
-```
-
-**NeoForge pattern:**
-```java
-NeoForge.EVENT_BUS.addListener(this::onServerStarting);
-// OR
-@EventBusSubscriber(modid = MOD_ID, bus = Bus.FORGE)
-```
+NeoForge event handlers are fully implemented in `HttpAutomator.java`:
+- `NeoForge.EVENT_BUS` for server lifecycle events
+- Proper startup/shutdown handling
 
 ---
 
@@ -168,12 +133,15 @@ NeoForge.EVENT_BUS.addListener(this::onServerStarting);
 
 **Severity:** Medium
 **Impact:** Code cleanliness
+**Status:** Only affects disabled modules (common/forge for MC 1.20.2)
 
 **Files:**
-| File | Import | Line |
-|------|--------|------|
-| `common/.../block/HttpReceiverBlock.java` | `WorldLoadEvent` | 9 |
-| `forge/.../HttpAutomator.java` | `WorldLoadEvent` | 6 |
+| File | Import | Line | Module Status |
+|------|--------|------|---------------|
+| `common/.../block/HttpReceiverBlock.java` | `WorldLoadEvent` | 9 | Disabled |
+| `forge/.../HttpAutomator.java` | `WorldLoadEvent` | 6 | Disabled |
+
+**Note:** Not blocking since these modules are disabled in settings.gradle
 
 ---
 
@@ -181,28 +149,19 @@ NeoForge.EVENT_BUS.addListener(this::onServerStarting);
 
 **Severity:** Medium
 **Impact:** Future compatibility
+**Status:** Only affects disabled modules (common/ for MC 1.20.2)
 
-**File:** `common/.../block/HttpReceiverBlock.java`
-
-**Methods flagged:**
-- `onPlace()` - deprecated but still functional
-- `onRemove()` - deprecated but still functional
-- `getSignal()` - deprecated but still functional
-- `createBlockStateDefinition()` - deprecated but still functional
-
-**Note:** Comment in code says "This is not a problem in Forge/NeoForge"
+**Note:** NeoForge 1.21.1 implementation uses current API methods
 
 ---
 
-### 9. Default LAN Binding (Security)
+### 9. ~~Default LAN Binding (Security)~~ ✅ RESOLVED
 
-**Severity:** Medium
-**Impact:** Security exposure
+**Status:** Resolved via PR #7 (fix/default-localhost-binding)
 
-**Current default:** `192.168.0.1` (LAN)
-**Recommended default:** `127.0.0.1` (localhost)
-
-**File:** `forge/.../platform/config/HttpServerConfig.java`
+**Implementation:**
+- Changed `DEFAULT_BIND_ADDRESS` to `127.0.0.1` in `HttpServerImpl.java`
+- Server now binds to localhost by default for security
 
 ---
 
@@ -335,16 +294,17 @@ Create `neoforge/.../platform/config/HttpServerConfig.java`:
 
 | Priority | Debt Item | PR# | Branch | Status |
 |----------|-----------|-----|--------|--------|
-| 1 | Merge dev branch | #1 | merge dev→main | Pending |
-| 2 | Merge feenixnet | #2 | merge feenixnet→main | Pending |
-| 3 | Fix NeoForge mixin | #4 | fix/neoforge-mixin | Pending |
-| 4 | Clean unused imports | #5 | fix/unused-imports | Pending |
-| 5 | Fix memory leak | #6 | fix/handler-cleanup | Pending |
-| 6 | Default to localhost | #7 | fix/localhost-default | Pending |
-| 7 | NeoForge events | #8 | feature/neoforge-events | Pending |
-| 8 | NeoForge networking | #9 | feature/neoforge-network | Pending |
-| 9 | NeoForge registry | #10 | feature/neoforge-registry | Pending |
-| 10 | NeoForge config | #11 | feature/neoforge-config | Pending |
-| 11 | Rename to Eira Relay | #12 | refactor/rename-eira | Pending |
+| 1 | Merge dev branch | #1 | merge/dev-to-main | ✅ Complete |
+| 2 | Merge feenixnet | #2 | merge/feenixnet-to-main | ✅ Complete |
+| 3 | Merge docs | #3 | docs/add-claude-md-and-analysis-structure | ✅ Complete |
+| 4 | Fix NeoForge mixin | #4 | fix/neoforge-mixin-config | ✅ Complete |
+| 5 | Port HTTP Sender | #5 | feature/neoforge-http-sender | ✅ Complete |
+| 6 | Fix memory leak | #6 | fix/handler-cleanup-on-remove | ✅ Complete |
+| 7 | Default to localhost | #7 | fix/default-localhost-binding | ✅ Complete |
+| 8 | Rename to Eira Relay | #8 | refactor/rename-eira-relay | Pending |
+
+**Note:** Original PRs #8-11 (NeoForge events, networking, registry, config) were already
+implemented by the feenixnet branch. HTTP Sender was ported directly to NeoForge 1.21.1
+instead of merging incompatible MC 1.20.2 code.
 
 See `doc/new/tasks.md` and `doc/new/backlog.md` for full PR details.

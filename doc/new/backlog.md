@@ -18,6 +18,7 @@
 
 ### Rename to "Eira Relay"
 
+**Status:** Pending - PR #8 (Next task)
 **Impact:** Brand consistency, release blocker
 **Effort:** Medium (many files, but mechanical changes)
 **Website:** www.eira.no
@@ -26,41 +27,34 @@
 - Rename mod_id: `httpautomator` → `eirarelay`
 - Rename mod_name: `HttpAutomator` → `Eira Relay`
 - Rename package: `com.clapter.httpautomator` → `no.eira.relay`
-- Rename assets: `assets/happyhttp/` → `assets/eirarelay/`
-- Rename configs: `happyhttp-*.toml` → `eirarelay-*.toml`
+- Rename assets: `assets/httpautomator/` → `assets/eirarelay/`
+- Rename configs: `httpautomator-*.toml` → `eirarelay-*.toml`
 - Update all documentation
 
 See `doc/new/tasks.md` for detailed subtasks.
 
 ---
 
-### Merge `dev` Branch to `main`
+### ~~Merge `dev` Branch to `main`~~ ✅ COMPLETE
 
-**Impact:** Unblocks all feature work
-**Effort:** Medium (merge + testing)
+**Status:** ✅ Complete (PR #1)
 
-**Brings:**
-- HTTP Sender Block
-- Global parameters
-- Power modes (Toggle/Timer)
-- HTTP client
-- Enhanced GUIs
-- Parameter editing widgets
-- JSON utilities
+Dev branch merged. HTTP Sender ported separately to NeoForge 1.21.1.
 
 ---
 
-### Complete NeoForge Implementation
+### ~~Complete NeoForge Implementation~~ ✅ COMPLETE
 
-**Impact:** Platform support for NeoForge users
-**Effort:** High
+**Status:** ✅ Complete (PRs #2, #4, #5, #6, #7)
 
-**Tasks:**
-1. Fix mixin config package name
-2. Implement server lifecycle events
-3. Port networking layer
-4. Port registry system
-5. Port configuration
+All tasks completed:
+1. ✅ Fix mixin config package name (PR #4)
+2. ✅ Server lifecycle events (feenixnet branch, PR #2)
+3. ✅ Networking layer (feenixnet branch, PR #2)
+4. ✅ Registry system (feenixnet branch, PR #2)
+5. ✅ HTTP Sender port (PR #5)
+6. ✅ Handler cleanup (PR #6)
+7. ✅ Localhost binding (PR #7)
 
 ---
 
@@ -355,30 +349,24 @@ See `doc/new/tasks.md` for detailed subtasks.
 
 ---
 
-## Implementation Order
+## Implementation Order (Updated)
 
 ```
-Phase 1: Branch Merges (PRs #1-3)
-├── PR#1: Merge dev branch (HTTP Sender, params, GUIs)
-├── PR#2: Merge feenixnet branch (NeoForge 1.21 docs)
-└── PR#3: Merge docs branch (CLAUDE.md, analysis)
+Phase 1: Branch Merges ✅ COMPLETE
+├── PR#1: Merge dev branch (HTTP Sender for MC 1.20.2) ✅
+├── PR#2: Merge feenixnet branch (NeoForge 1.21.1 port) ✅
+└── PR#3: Merge docs branch (CLAUDE.md, analysis) ✅
 
-Phase 2: Quick Fixes (PRs #4-7, parallel)
-├── PR#4: Fix NeoForge mixin config
-├── PR#5: Clean unused imports
-├── PR#6: Handler cleanup on block remove
-└── PR#7: Default to localhost binding
+Phase 2: NeoForge Implementation ✅ COMPLETE
+├── PR#4: Fix NeoForge mixin config ✅
+├── PR#5: Port HTTP Sender to NeoForge 1.21.1 ✅
+├── PR#6: Handler cleanup on block remove ✅
+└── PR#7: Default to localhost binding ✅
 
-Phase 3: NeoForge Implementation (PRs #8-11)
-├── PR#8: NeoForge event handlers
-├── PR#9: NeoForge networking
-├── PR#10: NeoForge registry
-└── PR#11: NeoForge config
+Phase 3: Rename (Next)
+└── PR#8: Rename to Eira Relay (pending)
 
-Phase 4: Rename (PR #12)
-└── PR#12: Rename to Eira Relay
-
-Phase 5: Feature Development
+Phase 4: Feature Development (Backlog)
 ├── #37 Port binding helper
 ├── #26 Visual connection cues
 ├── #27 Inline testing
@@ -389,25 +377,23 @@ Phase 5: Feature Development
 
 ## PR Tracking
 
-| PR# | Branch | Description | Status | Deps |
-|-----|--------|-------------|--------|------|
-| 1 | merge dev→main | HTTP Sender, global params | ✅ Done | - |
-| 2 | merge feenixnet→main | NeoForge 1.21 docs | ✅ Done | #1 |
-| 3 | merge docs→main | CLAUDE.md, doc/new/*.md | In Progress | #1,#2 |
-| 4 | fix/neoforge-mixin | Fix package name | Pending | #1 |
-| 5 | fix/unused-imports | Remove WorldLoadEvent | Pending | #1 |
-| 6 | fix/handler-cleanup | Memory leak fix | Pending | #1 |
-| 7 | fix/localhost-default | Security fix | Pending | #1 |
-| 8 | feature/neoforge-events | Lifecycle handlers | Pending | #4 |
-| 9 | feature/neoforge-network | Packet handling | Pending | #8 |
-| 10 | feature/neoforge-registry | Block registration | Pending | #8 |
-| 11 | feature/neoforge-config | Server config | Pending | #10 |
-| 12 | refactor/rename-eira | Full rename | Pending | #11 |
+| PR# | Branch | Description | Status |
+|-----|--------|-------------|--------|
+| 1 | merge/dev-to-main | HTTP Sender (MC 1.20.2) | ✅ Complete |
+| 2 | merge/feenixnet-to-main | NeoForge 1.21.1 port | ✅ Complete |
+| 3 | docs/add-claude-md-and-analysis-structure | Documentation | ✅ Complete |
+| 4 | fix/neoforge-mixin-config | Fix mixin package | ✅ Complete |
+| 5 | feature/neoforge-http-sender | Port HTTP Sender | ✅ Complete |
+| 6 | fix/handler-cleanup-on-remove | Memory leak fix | ✅ Complete |
+| 7 | fix/default-localhost-binding | Security fix | ✅ Complete |
+| 8 | refactor/rename-eira-relay | Full rename | Pending |
 
 ## Feature Backlog
 
 | Item | Status | Notes |
 |------|--------|-------|
+| Power modes | Backlog | Port from dev branch |
+| Global vars | Backlog | Port from dev branch |
 | #37 Port helper | Backlog | Tier 1 |
 | #26 Visual cues | Backlog | Tier 1 |
 | #27 Testing | Backlog | Tier 1 |

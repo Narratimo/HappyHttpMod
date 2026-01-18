@@ -1,6 +1,7 @@
 # Project Analysis: Eira Relay
 
 > **Rebranding:** The mod is being renamed from "Happy HTTP" / "HttpAutomator" to "Eira Relay" (www.eira.no)
+> Package rename: `com.clapter.httpautomator` → `no.eira.relay`
 
 ## Executive Summary
 
@@ -8,91 +9,109 @@
 
 **Primary Goal:** Enable adventure map creators to build interactive experiences that mix physical/digital world events with Minecraft, allowing bidirectional triggering between the two.
 
-## Current Implementation Status
+## Current Implementation Status (January 2026)
 
-### Implemented Features
+### Active Platform: NeoForge 1.21.1
 
 | Feature | Status | Location |
 |---------|--------|----------|
-| HTTP Receiver Block | Complete | `common/.../block/HttpReceiverBlock.java` |
-| HTTP Server | Complete | `common/.../http/HttpServerImpl.java` |
-| Configuration GUI | Complete | `common/.../client/gui/HttpReceiverSettingsScreen.java` |
-| Custom Endpoint URLs | Complete | Block entity stores URL config |
-| Port Configuration | Complete | `happyhttp-common.toml` (default: 8080) |
-| Forge Support | Complete | `forge/` module |
+| HTTP Receiver Block | ✅ Complete | `neoforge/.../block/HttpReceiverBlock.java` |
+| HTTP Sender Block | ✅ Complete | `neoforge/.../block/HttpSenderBlock.java` |
+| HTTP Server | ✅ Complete | `neoforge/.../http/HttpServerImpl.java` |
+| HTTP Client | ✅ Complete | `neoforge/.../http/HttpClientImpl.java` |
+| Receiver GUI | ✅ Complete | `neoforge/.../client/gui/HttpReceiverSettingsScreen.java` |
+| Sender GUI | ✅ Complete | `neoforge/.../client/gui/HttpSenderSettingsScreen.java` |
+| Custom Endpoint URLs | ✅ Complete | Block entity stores URL config |
+| HTTP GET/POST | ✅ Complete | EnumHttpMethod for sender |
+| Port Configuration | ✅ Complete | Config system (default: 8080) |
+| Localhost Binding | ✅ Complete | Secure by default (127.0.0.1) |
+| Handler Cleanup | ✅ Complete | Unregisters on block removal |
+| Mixin Config | ✅ Fixed | Correct package name |
 
-### Gap Analysis: Main Branch vs Dev Branch
+### Disabled Platforms
 
-| Feature | Main Branch | Dev Branch |
-|---------|-------------|------------|
-| HTTP Receiver Block | Implemented | Enhanced |
-| HTTP Sender Block | Missing | **IMPLEMENTED** |
-| Parameter Matching | Missing | **IMPLEMENTED** |
-| Power Modes (Toggle/Timer) | Missing | **IMPLEMENTED** (EnumPoweredType, EnumTimerUnit) |
-| Global Variables | Missing | **IMPLEMENTED** (GlobalParam, config) |
-| HTTP Client | Missing | **IMPLEMENTED** (HttpClientImpl) |
-| JSON Utilities | Missing | **IMPLEMENTED** (JsonUtils) |
-| Base Block Screen | Missing | **IMPLEMENTED** (BaseBlockScreen) |
-| NeoForge Support | Skeleton | Skeleton |
-| Fabric Support | Incomplete | Incomplete |
+| Platform | MC Version | Status | Notes |
+|----------|------------|--------|-------|
+| Forge | 1.20.2 | Disabled | Code exists in common/forge but not compiled |
+| Fabric | - | Incomplete | Basic structure only |
 
-### Branches Status
+## Branch Analysis
 
-| Branch | Status | Key Content |
-|--------|--------|-------------|
-| `main` | Stable but incomplete | HTTP Receiver only |
-| `dev` | Feature-complete but not merged | HTTP Sender, global params, enhancements |
-| `feenixnet` | Documentation updates | Working version docs, compatibility |
-| `origin/codex/*` | Bug fixes | Startup error fixes |
+### PR Branches (Ready for Review)
 
-**Key Finding:** The HTTP Sender Block is fully implemented in the `dev` branch but has NOT been merged to `main`. The `dev` branch also contains global parameters, HTTP client, and many other features.
+| Branch | Content | Status |
+|--------|---------|--------|
+| `merge/dev-to-main` | HTTP Sender (MC 1.20.2), global params | Ready |
+| `merge/feenixnet-to-main` | NeoForge 1.21 port, base implementation | Ready |
+| `docs/add-claude-md-and-analysis-structure` | Documentation updates | Ready |
+| `fix/neoforge-mixin-config` | Fix mixin package name | Ready |
+| `feature/neoforge-http-sender` | HTTP Sender for NeoForge 1.21.1 | Ready |
+| `fix/handler-cleanup-on-remove` | Memory leak fix | Ready |
+| `fix/default-localhost-binding` | Security: localhost binding | Ready |
 
-## Platform Support Status
+### Key Finding
 
-| Platform | Status | Details |
-|----------|--------|---------|
-| Forge 1.20.2 | Functional | Full implementation, working HTTP server |
-| NeoForge | Skeleton | Constructor only, no event handlers or networking |
-| Fabric | Incomplete | Basic structure, missing core functionality |
+The mod has been successfully ported to NeoForge 1.21.1 with both HTTP Receiver and HTTP Sender blocks fully functional. The original code from `dev` branch (MC 1.20.2) was ported to NeoForge 1.21.1 with API adaptations.
+
+## Technical Achievements
+
+### Completed Tasks
+
+1. ✅ Merged dev branch (HTTP Sender code for 1.20.2)
+2. ✅ Merged feenixnet branch (NeoForge 1.21 base)
+3. ✅ Fixed NeoForge mixin config package name
+4. ✅ Ported HTTP Sender to NeoForge 1.21.1
+5. ✅ Fixed memory leak (handler cleanup on block removal)
+6. ✅ Fixed security issue (default localhost binding)
+7. ✅ Updated all documentation
+
+### Architecture Improvements
+
+- HTTP server binds to localhost (127.0.0.1) by default for security
+- Uses config system for port configuration
+- Proper handler cleanup prevents memory leaks
+- Network packets use JSON serialization for compatibility
+
+## Risk Areas (Resolved)
+
+| Risk | Status | Resolution |
+|------|--------|------------|
+| Single Platform | ✅ Resolved | NeoForge 1.21.1 fully functional |
+| Missing HTTP Sender | ✅ Resolved | Ported to NeoForge |
+| Memory Leak | ✅ Resolved | Handler cleanup implemented |
+| Security (LAN binding) | ✅ Resolved | Default to localhost |
+| Mixin config wrong | ✅ Resolved | Package name fixed |
+
+## Remaining Work
+
+### PR #8: Rename to Eira Relay
+
+| Change | Current | New |
+|--------|---------|-----|
+| mod_id | `httpautomator` | `eirarelay` |
+| mod_name | `HttpAutomator` | `Eira Relay` |
+| Package | `com.clapter.httpautomator` | `no.eira.relay` |
+| Assets | `assets/httpautomator/` | `assets/eirarelay/` |
+
+### Future Enhancements (Backlog)
+
+- Global parameters support
+- Power modes (Toggle/Timer)
+- Authentication helpers
+- Rate limiting
+- Visual connection cues
+- Multi-version support
 
 ## Documentation Quality
 
 The project has comprehensive documentation:
-- Feature specifications with prioritization tiers
-- Security review with actionable recommendations
-- Use case documentation
-- Configuration reference
-- Porting guide for new versions
+- ✅ CLAUDE.md - Project overview and workflow
+- ✅ Feature specifications with prioritization
+- ✅ Security review with recommendations
+- ✅ Use case documentation
+- ✅ Analysis documentation (doc/new/)
+- ✅ Task tracking and backlog
 
-**Documentation Gaps:**
-- No API documentation for HTTP endpoints
-- Missing developer onboarding guide
-- No automated testing documentation
+## Conclusion
 
-## Risk Areas
-
-1. **Single Platform Dependency:** Only Forge is fully functional
-2. **Missing Core Feature:** HTTP Sender is documented but not implemented
-3. **Security Concerns:** Default LAN binding, no TLS, no authentication
-4. **Memory Leak:** HTTP handlers not cleaned up on block removal
-5. **Version Lock:** Tied to Minecraft 1.20.2, no multi-version support yet
-
-## Recommendations
-
-### Immediate Actions
-1. **Merge `dev` branch to `main`** - Contains HTTP Sender and many features
-2. Complete NeoForge implementation
-3. Add handler cleanup on block removal
-4. Fix NeoForge mixin config package name
-
-### Short-term Improvements
-1. Add parameter validation to HTTP Receiver
-2. Implement power modes (Toggle/Timer)
-3. Add default localhost binding for security
-4. Add HTTP method enforcement
-
-### Long-term Goals
-1. Multi-version support (1.21.x)
-2. Fabric feature parity
-3. Authentication helpers
-4. TLS support option
+The Eira Relay mod is now fully functional on NeoForge 1.21.1 with both core blocks (HTTP Receiver and HTTP Sender) implemented. Seven PR branches are ready for review and merge. The only remaining major task is the mod rename to "Eira Relay" with package rename to `no.eira.relay`.

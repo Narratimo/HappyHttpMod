@@ -2,6 +2,7 @@
 
 > **Rebranding in progress:** The mod is being renamed from "Happy HTTP" / "HttpAutomator" to "Eira Relay"
 > Website: www.eira.no
+> Package rename: `com.clapter.httpautomator` → `no.eira.relay`
 
 ## Workflow Rules
 
@@ -15,81 +16,90 @@
 
 **Eira Relay** (formerly Happy HTTP Mod) bridges Minecraft with external systems via HTTP webhooks. It provides:
 - **HTTP Receiver Block** - Triggers redstone signals from incoming webhooks
-- **HTTP Sender Block** - Sends HTTP requests on redstone signals
-
-**Note:** HTTP Sender is implemented in `dev` branch but not yet merged to `main`.
+- **HTTP Sender Block** - Sends HTTP requests on redstone signals (GET/POST)
 
 **Target Audience:** Adventure map creators, educators teaching HTTP/web concepts, smart home integrators.
+
+## Current State (January 2026)
+
+| Platform | MC Version | Status |
+|----------|------------|--------|
+| **NeoForge** | **1.21.1** | **Active - Both blocks working** |
+| Forge | 1.20.2 | Disabled (code exists but not compiled) |
+| Fabric | - | Incomplete |
+
+**Active Development:** NeoForge 1.21.1 module only. Common/Forge modules are disabled in settings.gradle.
 
 ## Key Directories
 
 ```
-common/     - Shared code across all platforms
-forge/      - Forge-specific implementation (functional)
+neoforge/   - NeoForge 1.21.1 implementation (ACTIVE)
+common/     - Shared code for MC 1.20.2 (DISABLED)
+forge/      - Forge 1.20.2 implementation (DISABLED)
 fabric/     - Fabric implementation (incomplete)
-neoforge/   - NeoForge implementation (skeleton only)
-doc/       - Existing documentation
-doc/new/   - Analysis documentation
+doc/        - Existing documentation
+doc/new/    - Analysis documentation
 ```
 
 ## Build Commands
 
 ```bash
-./gradlew build              # Build all platforms
-./gradlew :forge:build       # Build Forge only
-./gradlew :forge:runClient   # Run dev client
-./gradlew :forge:runServer   # Run dev server
+./gradlew build                 # Build NeoForge module
+./gradlew :neoforge:build       # Build NeoForge only
+./gradlew :neoforge:runClient   # Run dev client
+./gradlew :neoforge:runServer   # Run dev server
 ```
 
-## Key Source Files
+## Key Source Files (NeoForge)
 
 | File | Purpose |
 |------|---------|
-| `common/.../CommonClass.java` | Main entry point, HTTP server lifecycle |
-| `common/.../http/HttpServerImpl.java` | HTTP server implementation |
-| `common/.../http/HttpReceiverBlockHandler.java` | Handles incoming webhooks |
-| `common/.../block/HttpReceiverBlock.java` | Receiver block logic |
-| `common/.../blockentity/HttpReceiverBlockEntity.java` | Block entity with URL config |
-| `common/.../client/gui/HttpReceiverSettingsScreen.java` | Configuration GUI |
+| `neoforge/.../HttpAutomator.java` | Main mod entry point |
+| `neoforge/.../CommonClass.java` | HTTP server/client lifecycle |
+| `neoforge/.../block/HttpReceiverBlock.java` | Receiver block (webhook → redstone) |
+| `neoforge/.../block/HttpSenderBlock.java` | Sender block (redstone → HTTP) |
+| `neoforge/.../http/HttpServerImpl.java` | HTTP server for receivers |
+| `neoforge/.../http/HttpClientImpl.java` | HTTP client for senders |
+| `neoforge/.../client/gui/*.java` | Configuration GUIs |
 | `gradle.properties` | Version configuration |
 
-## Current State
+## PR Branches Ready for Review
 
-| Platform | Version | Status |
-|----------|---------|--------|
-| Minecraft | 1.20.2 | Supported |
-| Forge | 48.0.49 | Functional |
-| NeoForge | 20.2.86 | Skeleton only |
-| Fabric | 0.91.0+1.20.2 | Incomplete |
+| Branch | Description |
+|--------|-------------|
+| `merge/dev-to-main` | Original dev branch merge (MC 1.20.2 code) |
+| `merge/feenixnet-to-main` | NeoForge 1.21 port |
+| `docs/add-claude-md-and-analysis-structure` | Documentation updates |
+| `fix/neoforge-mixin-config` | Fix mixin package name |
+| `feature/neoforge-http-sender` | HTTP Sender for NeoForge 1.21.1 |
+| `fix/handler-cleanup-on-remove` | Memory leak fix |
+| `fix/default-localhost-binding` | Security: bind to localhost |
 
-## Branch Status
+## Remaining Work
 
-| Branch | Status | Content |
-|--------|--------|---------|
-| `main` | Stable but incomplete | HTTP Receiver only |
-| `dev` | Feature-complete | HTTP Sender, global params, enhancements |
-| `feenixnet` | Documentation | Working version docs |
+### PR #8: Rename to Eira Relay
+- mod_id: `httpautomator` → `eirarelay`
+- mod_name: `HttpAutomator` → `Eira Relay`
+- Package: `com.clapter.httpautomator` → `no.eira.relay`
+- Assets: `assets/httpautomator/` → `assets/eirarelay/`
 
-**Priority:** Merge `dev` to `main` to complete core functionality.
+## Technical Details
 
-## Technical Debt Summary
-
-- **NeoForge module:** Only skeleton, missing event handlers and network layer
-- **HTTP Sender Block:** Documented but not implemented
-- **Forge-specific APIs:** `FMLJavaModLoadingContext`, `SimpleChannel` need abstraction for multi-platform
-- **Mixin config:** NeoForge has wrong package name in mixins.json
+- **Package:** `com.clapter.httpautomator` (will become `no.eira.relay`)
+- **Mod ID:** `httpautomator` (will become `eirarelay`)
+- **Default HTTP Port:** 8080 (configurable)
+- **Default Bind Address:** 127.0.0.1 (localhost only for security)
 
 ## Documentation
 
-- `doc/features.md` - Feature specifications with prioritization
+- `doc/features.md` - Feature specifications
 - `doc/architecture.md` - Technical architecture
 - `doc/USE_CASES.md` - Real-world usage examples
 - `doc/ARCHITECTURE_SECURITY_REVIEW.md` - Security analysis
-- `doc/new/` - Analysis documentation (this project)
-
-## Quick Reference
-
-- **Package:** `com.clapter.httpautomator`
-- **Mod ID:** `httpautomator`
-- **Default HTTP Port:** 8080
-- **Config File:** `happyhttp-common.toml`
+- `doc/new/` - Analysis documentation
+  - `analysis.md` - Gap analysis
+  - `architecture.md` - Architecture details
+  - `features.md` - Feature status
+  - `tasks.md` - Task tracking
+  - `technical-debt.md` - Debt resolution
+  - `backlog.md` - Feature backlog
