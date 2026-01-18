@@ -4,11 +4,13 @@ import no.eira.relay.CommonClass;
 import no.eira.relay.block.HttpReceiverBlock;
 import no.eira.relay.blockentity.HttpReceiverBlockEntity;
 import no.eira.relay.http.api.IHttpHandler;
+import no.eira.relay.platform.Services;
+import no.eira.relay.platform.config.GlobalParam;
+import no.eira.relay.utils.ParameterReader;
 import com.sun.net.httpserver.HttpExchange;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -75,17 +77,25 @@ public class HttpReceiverBlockHandler implements IHttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        System.out.println("[HttpAutomator] Received " + exchange.getRequestMethod() + " request to " + exchange.getRequestURI());
-        
+        System.out.println("[EiraRelay] Received " + exchange.getRequestMethod() + " request to " + exchange.getRequestURI());
+
         try {
+            // Check global parameters first
+            List<GlobalParam> globalParams = Services.HTTP_CONFIG.getGlobalParams();
+            if (!globalParams.isEmpty()) {
+                if (!checkGlobalParams(exchange, globalParams)) {
+                    return; // Response already sent by checkGlobalParams
+                }
+            }
+
             int signalsSent = 0;
-            
+
             if (serverLevel != null && serverLevel.getServer() != null) {
                 MinecraftServer server = serverLevel.getServer();
-                
+
                 // Copy the list to avoid concurrent modification
                 List<BlockPos> positionsCopy = new ArrayList<>(blockPositions);
-                
+
                 for (BlockPos pos : positionsCopy) {
                     // Schedule on main server thread
                     server.execute(() -> {
@@ -98,22 +108,22 @@ public class HttpReceiverBlockHandler implements IHttpHandler {
                                 if (state.getBlock() instanceof HttpReceiverBlock block) {
                                     // Directly call onSignal on the block
                                     block.onSignal(state, serverLevel, pos);
-                                    System.out.println("[HttpAutomator] Triggered signal at block position: " + pos);
+                                    System.out.println("[EiraRelay] Triggered signal at block position: " + pos);
                                 }
                             } else {
-                                System.out.println("[HttpAutomator] Block entity at " + pos + " is not HttpReceiverBlockEntity or is null");
+                                System.out.println("[EiraRelay] Block entity at " + pos + " is not HttpReceiverBlockEntity or is null");
                             }
                         } catch (Exception e) {
-                            System.err.println("[HttpAutomator] Error triggering block at " + pos + ": " + e.getMessage());
+                            System.err.println("[EiraRelay] Error triggering block at " + pos + ": " + e.getMessage());
                             e.printStackTrace();
                         }
                     });
                     signalsSent++;
                 }
             } else {
-                System.out.println("[HttpAutomator] Server level is null, cannot process request");
+                System.out.println("[EiraRelay] Server level is null, cannot process request");
             }
-            
+
             // Send success response
             String response = "OK - Signal sent to " + signalsSent + " block(s)";
             byte[] responseBytes = response.getBytes(StandardCharsets.UTF_8);
@@ -122,9 +132,9 @@ public class HttpReceiverBlockHandler implements IHttpHandler {
             try (OutputStream os = exchange.getResponseBody()) {
                 os.write(responseBytes);
             }
-            
-            System.out.println("[HttpAutomator] Response sent: " + response);
-            
+
+            System.out.println("[EiraRelay] Response sent: " + response);
+
         } catch (Exception e) {
             // Send error response
             String errorResponse = "Error: " + e.getMessage();
@@ -133,8 +143,49 @@ public class HttpReceiverBlockHandler implements IHttpHandler {
             try (OutputStream os = exchange.getResponseBody()) {
                 os.write(errorBytes);
             }
-            System.err.println("[HttpAutomator] Error handling request: " + e.getMessage());
+            System.err.println("[EiraRelay] Error handling request: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private boolean checkGlobalParams(HttpExchange exchange, List<GlobalParam> globalParams) throws IOException {
+        Map<String, String> params = ParameterReader.getAllParameters(exchange);
+        String redirect = Services.HTTP_CONFIG.getGlobalRedirect();
+
+        // If no params in request, redirect to global redirect URL if configured
+        if (params.isEmpty()) {
+            if (redirect != null && !redirect.isEmpty()) {
+                exchange.getResponseHeaders().add("Location", redirect);
+                exchange.sendResponseHeaders(308, 0);
+                exchange.close();
+            }
+            return false;
+        }
+
+        // Check each global param
+        for (GlobalParam param : globalParams) {
+            if (param.name == null) continue;
+
+            String requestParam = params.get(param.name);
+            if (requestParam == null) {
+                // Param not in the request
+                if (param.redirectWrong != null && !param.redirectWrong.isEmpty()) {
+                    exchange.getResponseHeaders().add("Location", param.redirectWrong);
+                    exchange.sendResponseHeaders(308, 0);
+                    exchange.close();
+                }
+                return false;
+            }
+            if (param.value != null && !param.value.equals(requestParam)) {
+                // Param value doesn't match
+                if (param.redirectWrong != null && !param.redirectWrong.isEmpty()) {
+                    exchange.getResponseHeaders().add("Location", param.redirectWrong);
+                    exchange.sendResponseHeaders(308, 0);
+                    exchange.close();
+                }
+                return false;
+            }
+        }
+        return true;
     }
 }

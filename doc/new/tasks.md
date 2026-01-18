@@ -22,6 +22,7 @@ All critical work has been completed via PRs.
 | 57 | feature/forge-http-sender | **HTTP Sender for forge/common** | ✅ Complete |
 | 58 | feature/forge-power-modes | **Power modes for forge/common** | ✅ Complete |
 | 59 | fix/common-translations | Fix translation file for forge | ✅ Complete |
+| 60 | feature/sender-power-modes | **Power modes for HTTP Sender** | ✅ Complete |
 
 ---
 
@@ -139,8 +140,9 @@ The `refactor/rename-eira-relay` branch contains all changes from PRs #4-8 and n
 
 | Feature | Priority | Notes |
 |---------|----------|-------|
-| ~~Power modes (Toggle/Timer)~~ | ✅ **Ready for PR** | PR #9 |
+| ~~Power modes (Toggle/Timer)~~ | ✅ Complete | PRs #9, #58, #60 |
 | Global variables | Medium | Port from dev branch |
+| Norwegian translations | Low | Add no_no.json |
 | Port binding helper | Low | Tier 1 feature |
 | Visual connection cues | Low | Tier 1 feature |
 | Inline testing | Low | Tier 1 feature |
