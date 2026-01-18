@@ -26,8 +26,12 @@ plugins {
 
 // This should match the folder name of the project, or else IDEA may complain (see https://youtrack.jetbrains.com/issue/IDEA-317606)
 rootProject.name = 'EiraRelay'
-// common and forge are for MC 1.20.2 - disabled until version updated to 1.21.1
-//include("common")
+
+// Multi-version support:
+// - common/forge: MC 1.20.2 / Java 17
+// - neoforge: MC 1.21.1 / Java 21
+// - fabric: disabled (incomplete implementation)
+include("common")
 //include("fabric")
-//include("forge")
+include("forge")
 include("neoforge")
