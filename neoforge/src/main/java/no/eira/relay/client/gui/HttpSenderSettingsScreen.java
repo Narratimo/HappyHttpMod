@@ -3,6 +3,8 @@ package no.eira.relay.client.gui;
 import no.eira.relay.Constants;
 import no.eira.relay.blockentity.HttpSenderBlockEntity;
 import no.eira.relay.enums.EnumHttpMethod;
+import no.eira.relay.enums.EnumPoweredType;
+import no.eira.relay.enums.EnumTimerUnit;
 import no.eira.relay.network.packet.SUpdateHttpSenderValuesPacket;
 import no.eira.relay.platform.Services;
 import net.minecraft.client.gui.GuiGraphics;
@@ -28,17 +30,29 @@ public class HttpSenderSettingsScreen extends Screen {
     private Button saveButton;
     private EditBox urlInput;
     private CycleButton<EnumHttpMethod> methodButton;
+    private Button powerModeButton;
+    private EditBox timerInput;
+    private Button timerUnitButton;
 
     private String urlText;
     private EnumHttpMethod httpMethod;
+    private EnumPoweredType poweredType;
+    private float timerValue;
+    private EnumTimerUnit timerUnit;
 
     public HttpSenderSettingsScreen(HttpSenderBlockEntity blockEntity) {
         super(TITLE);
         screenWidth = 250;
         screenHeight = 166;
         this.blockEntity = blockEntity;
-        this.urlText = blockEntity.getValues().url;
-        this.httpMethod = blockEntity.getValues().httpMethod;
+
+        // Initialize from block entity values
+        HttpSenderBlockEntity.Values values = blockEntity.getValues();
+        this.urlText = values.url;
+        this.httpMethod = values.httpMethod;
+        this.poweredType = values.poweredType;
+        this.timerValue = values.timer;
+        this.timerUnit = values.timerUnit;
     }
 
     @Override
@@ -64,19 +78,77 @@ public class HttpSenderSettingsScreen extends Screen {
                 })
         );
 
+        // Power mode button
+        this.powerModeButton = addRenderableWidget(Button.builder(
+                this.poweredType.getComponent(), this::handlePowerModeButton)
+                .bounds(leftPos + 10, topPos + 90, 80, 20)
+                .build()
+        );
+
+        // Timer value input (only visible when TIMER mode)
+        this.timerInput = new EditBox(font, leftPos + 95, topPos + 90, 50, 20, Component.empty());
+        this.timerInput.setResponder(text -> {
+            try {
+                timerValue = Float.parseFloat(text);
+            } catch (NumberFormatException e) {
+                // Keep previous value on invalid input
+            }
+        });
+        timerInput.setValue(String.valueOf(timerValue));
+        addRenderableWidget(timerInput);
+
+        // Timer unit button (only visible when TIMER mode)
+        this.timerUnitButton = addRenderableWidget(Button.builder(
+                this.timerUnit.getComponent(), this::handleTimerUnitButton)
+                .bounds(leftPos + 150, topPos + 90, 58, 20)
+                .build()
+        );
+
         // Save button
         this.saveButton = addRenderableWidget(Button.builder(
                 SAVE_TEXT, this::handleSaveButton)
                 .bounds(leftPos + 10, topPos + 130, 80, 20)
                 .build()
         );
+
+        updateTimerVisibility();
+    }
+
+    private void updateTimerVisibility() {
+        boolean isTimer = this.poweredType == EnumPoweredType.TIMER;
+        this.timerInput.visible = isTimer;
+        this.timerInput.active = isTimer;
+        this.timerUnitButton.visible = isTimer;
+        this.timerUnitButton.active = isTimer;
+    }
+
+    private void handlePowerModeButton(Button button) {
+        // Cycle through power modes
+        EnumPoweredType[] types = EnumPoweredType.values();
+        int nextIndex = (this.poweredType.ordinal() + 1) % types.length;
+        this.poweredType = types[nextIndex];
+        button.setMessage(this.poweredType.getComponent());
+        updateTimerVisibility();
+    }
+
+    private void handleTimerUnitButton(Button button) {
+        // Cycle through timer units
+        EnumTimerUnit[] units = EnumTimerUnit.values();
+        int nextIndex = (this.timerUnit.ordinal() + 1) % units.length;
+        this.timerUnit = units[nextIndex];
+        button.setMessage(this.timerUnit.getComponent());
     }
 
     private void handleSaveButton(Button button) {
         if (this.checkValues()) {
-            HttpSenderBlockEntity.Values values = blockEntity.getValues();
+            HttpSenderBlockEntity.Values values = new HttpSenderBlockEntity.Values();
             values.url = this.urlText;
             values.httpMethod = this.httpMethod;
+            values.poweredType = this.poweredType;
+            values.timer = this.timerValue;
+            values.timerUnit = this.timerUnit;
+            // Preserve parameter map from block entity
+            values.parameterMap = blockEntity.getValues().parameterMap;
 
             Services.PACKET_HANDLER.sendPacketToServer(new SUpdateHttpSenderValuesPacket(
                     this.blockEntity.getBlockPos(),
