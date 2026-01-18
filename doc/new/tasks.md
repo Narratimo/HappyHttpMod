@@ -15,10 +15,9 @@ All work is done via small PRs. Each PR updates documentation.
 | 3 | merge docs→main | CLAUDE.md, doc/new/*.md | ✅ Done | #1,#2 |
 | 4 | fix/neoforge-mixin-config | Fix wrong package name | ✅ Done | #2 |
 | 5 | feature/neoforge-http-sender | **HTTP Sender for NeoForge 1.21.1** | ✅ Done | #4 |
-| 6 | fix/unused-imports | Remove WorldLoadEvent imports | Pending | #5 |
-| 7 | fix/handler-cleanup | Unregister handlers on block remove | Pending | #5 |
-| 8 | fix/localhost-default | Security: default to 127.0.0.1 | Pending | #5 |
-| 9 | refactor/rename-eira-relay | Full mod rename | Pending | #8 |
+| 6 | fix/handler-cleanup-on-remove | Fix memory leak (handler cleanup) | ✅ Done | #5 |
+| 7 | fix/default-localhost-binding | Security: bind to localhost | ✅ Done | #5 |
+| 8 | refactor/rename-eira-relay | Full mod rename to Eira Relay | Pending | #7 |
 
 **Note:** PRs #8-11 from original plan (NeoForge events, networking, registry, config) were already implemented by feenixnet branch.
 
@@ -38,7 +37,7 @@ All work is done via small PRs. Each PR updates documentation.
 |----------|---------|-----|
 | `gradle.properties` | `mod_id = httpautomator` | `mod_id = eirarelay` |
 | `gradle.properties` | `mod_name = HttpAutomator` | `mod_name = Eira Relay` |
-| Package name | `com.clapter.httpautomator` | `com.eira.relay` (or similar) |
+| Package name | `com.clapter.httpautomator` | `no.eira.relay` |
 | Config file | `happyhttp-common.toml` | `eirarelay-common.toml` |
 | Assets path | `assets/happyhttp/` | `assets/eirarelay/` |
 | Mixin configs | `httpautomator` references | `eirarelay` references |

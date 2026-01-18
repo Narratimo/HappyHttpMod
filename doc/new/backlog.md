@@ -25,7 +25,7 @@
 **Scope:**
 - Rename mod_id: `httpautomator` → `eirarelay`
 - Rename mod_name: `HttpAutomator` → `Eira Relay`
-- Rename package: `com.clapter.httpautomator` → TBD (e.g., `no.eira.relay`)
+- Rename package: `com.clapter.httpautomator` → `no.eira.relay`
 - Rename assets: `assets/happyhttp/` → `assets/eirarelay/`
 - Rename configs: `happyhttp-*.toml` → `eirarelay-*.toml`
 - Update all documentation
