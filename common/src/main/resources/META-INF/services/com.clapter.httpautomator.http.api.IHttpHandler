@@ -1,1 +1,1 @@
-com.clapter.httpautomator.http.handlers.TestHttpHandler
+# No default handlers - handlers are registered dynamically by blocks

@@ -47,11 +47,10 @@ public class HttpReceiverBlock extends PoweredBlock implements EntityBlock {
     }
 
     public void onSignal(BlockState state, Level level, BlockPos pos){
-            BlockState $$7 = this.switchPowered(state, level, pos);
-            float $$8 = $$7.getValue(POWERED) ? 0.6F : 0.5F;
-            //level.playSound(null, $$2, SoundEvents.LEVER_CLICK, SoundSource.BLOCKS, 0.3F, $$8);
-            //level.gameEvent($$3, $$7.getValue(POWERED) ? GameEvent.BLOCK_ACTIVATE : GameEvent.BLOCK_DEACTIVATE, $$2);
-
+        BlockState newState = this.switchPowered(state, level, pos);
+        float pitch = newState.getValue(POWERED) ? 0.6F : 0.5F;
+        level.playSound(null, pos, SoundEvents.LEVER_CLICK, SoundSource.BLOCKS, 0.3F, pitch);
+        level.gameEvent(null, newState.getValue(POWERED) ? GameEvent.BLOCK_ACTIVATE : GameEvent.BLOCK_DEACTIVATE, pos);
     }
 
     @Override
@@ -70,11 +69,11 @@ public class HttpReceiverBlock extends PoweredBlock implements EntityBlock {
         return InteractionResult.SUCCESS;
     }
 
-    public BlockState switchPowered(BlockState $$0, Level $$1, BlockPos $$2) {
-        $$0 = $$0.cycle(POWERED);
-        $$1.setBlock($$2, $$0, 3);
-        this.updateNeighbours($$0, $$1, $$2);
-        return $$0;
+    public BlockState switchPowered(BlockState state, Level level, BlockPos pos) {
+        state = state.cycle(POWERED);
+        level.setBlock(pos, state, 3);
+        this.updateNeighbours(state, level, pos);
+        return state;
     }
 
     @Override
@@ -88,14 +87,28 @@ public class HttpReceiverBlock extends PoweredBlock implements EntityBlock {
         }
     }
 
-    private void updateNeighbours(BlockState $$0, Level $$1, BlockPos $$2) {
-        //$$1.updateNeighborsAt($$2, this);
-        //$$1.updateNeighborsAt($$2.relative(getConnectedDirection($$0).getOpposite()), this);
+    private void updateNeighbours(BlockState state, Level level, BlockPos pos) {
+        // Notify all neighbors that this block's state changed
+        level.updateNeighborsAt(pos, this);
+        // Also update neighbors in all directions for redstone
+        for (Direction direction : Direction.values()) {
+            level.updateNeighborsAt(pos.relative(direction), this);
+        }
     }
 
     @Override
     public int getSignal(BlockState $$0, BlockGetter $$1, BlockPos $$2, Direction $$3) {
         return $$0.getValue(POWERED) ? 15 : 0;
+    }
+
+    @Override
+    public int getDirectSignal(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
+        return state.getValue(POWERED) ? 15 : 0;
+    }
+
+    @Override
+    public boolean isSignalSource(BlockState state) {
+        return true;
     }
 
     @Override

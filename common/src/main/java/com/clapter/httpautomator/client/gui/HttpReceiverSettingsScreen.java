@@ -15,7 +15,7 @@ import net.minecraft.network.chat.Component;
 public class HttpReceiverSettingsScreen extends Screen {
 
     private static Component TITLE = Component.translatable("gui."+ Constants.MOD_ID + ".http_receiver_settings_screen");
-    private static Component START_TEXT = Component.translatable("gui."+ Constants.MOD_ID + ".http_receiver_startbutton");
+    private static Component SAVE_TEXT = Component.translatable("gui."+ Constants.MOD_ID + ".http_receiver_startbutton");
 
     private final int screenWidth;
     private final int screenHeight;
@@ -23,7 +23,7 @@ public class HttpReceiverSettingsScreen extends Screen {
     private int topPos;
     private HttpReceiverBlockEntity blockEntity;
 
-    private Button startButton;
+    private Button saveButton;
     private EditBox endpoint;
 
     private String endpointText;
@@ -41,9 +41,9 @@ public class HttpReceiverSettingsScreen extends Screen {
         super.init();
         this.leftPos = (this.width - screenWidth) / 2;
         this.topPos = (this.height - screenHeight) / 2;
-        this.startButton = addRenderableWidget(startButton.builder(
-                START_TEXT, this::handleStartButton)
-                .bounds(leftPos, topPos+10, 50, 20)
+        this.saveButton = addRenderableWidget(Button.builder(
+                SAVE_TEXT, this::handleSaveButton)
+                .bounds(leftPos, topPos + 10, 50, 20)
                 .build()
         );
         this.endpoint = new EditBox(font, leftPos + 50, topPos + 30 - 24, 198, 20, Component.empty());
@@ -55,14 +55,17 @@ public class HttpReceiverSettingsScreen extends Screen {
 
     }
 
-    private void handleStartButton(Button button){
+    private void handleSaveButton(Button button){
         if(this.checkValues()){
-            //SEND UPDATE PACKET TO SERVER
+            // Send update packet to server
             HttpReceiverBlockEntity.Values values = blockEntity.getValues();
             values.url = this.endpointText;
             Services.PACKET_HANDLER.sendPacketToServer(new SUpdateHttpReceiverValuesPacket(
                     this.blockEntity.getBlockPos(),
                     values));
+            
+            // Close the screen after saving
+            this.onClose();
         }
     }
 
@@ -71,8 +74,8 @@ public class HttpReceiverSettingsScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics $$0, int $$1, int $$2, float $$3) {
-        super.render($$0, $$1, $$2, $$3);
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
     }
 
     @Override
