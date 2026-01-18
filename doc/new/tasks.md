@@ -21,6 +21,7 @@ All critical work has been completed via PRs.
 | 56 | feature/port-modules-mc-1.21.1 | Multi-version support | ✅ Complete |
 | 57 | feature/forge-http-sender | **HTTP Sender for forge/common** | ✅ Complete |
 | 58 | feature/forge-power-modes | **Power modes for forge/common** | ✅ Complete |
+| 59 | fix/common-translations | Fix translation file for forge | ✅ Complete |
 
 ---
 
