@@ -8,15 +8,15 @@
         "${mod_author}"
     ],
     "contact": {
-        "homepage": "https://fabricmc.net/",
-        "sources": "https://github.com/FabricMC/fabric-example-mod"
+        "homepage": "https://www.eira.no/",
+        "sources": "https://github.com/Narratimo/HappyHttpMod"
     },
     "license": "${license}",
     "icon": "assets/${mod_id}/${mod_id}.png",
     "environment": "*",
     "entrypoints": {
         "main": [
-            "com.example.examplemod.ExampleMod"
+            "no.eira.relay.EiraRelay"
         ]
     },
     "mixins": [
