@@ -12,6 +12,11 @@ MINECRAFT_BASE_URL = "http://localhost:8080"  # Base URL for Minecraft HTTP Rece
 
 # Define your commands here!
 # Each command maps to a Minecraft endpoint with custom reactions and messages
+#
+# For toggles: use reaction_on/reaction_off and message_on/message_off
+# Minecraft should return JSON with {"state": "on"} or {"state": "off"}
+#
+# For non-toggles: use reaction_success and message_success
 COMMANDS = {
     "!eira": {
         "endpoint": "/discord",           # Minecraft endpoint to call
@@ -23,27 +28,36 @@ COMMANDS = {
     },
     "!lights": {
         "endpoint": "/lights",
-        "reaction_success": "💡",
+        "is_toggle": True,                 # Enable on/off mode
+        "reaction_on": "💡",               # Reaction when turned ON
+        "reaction_off": "🌑",              # Reaction when turned OFF
         "reaction_fail": "❌",
-        "message_success": "Lights toggled!",
+        "message_on": "Lights ON!",        # Message when turned ON
+        "message_off": "Lights OFF!",      # Message when turned OFF
         "message_fail": "Failed to toggle lights",
         "description": "Toggle lights"
     },
     "!door": {
         "endpoint": "/door",
-        "reaction_success": "🚪",
+        "is_toggle": True,
+        "reaction_on": "🚪",               # Door open
+        "reaction_off": "🔒",              # Door closed/locked
         "reaction_fail": "❌",
-        "message_success": "Door activated!",
+        "message_on": "Door opened!",
+        "message_off": "Door closed!",
         "message_fail": "Failed to activate door",
         "description": "Open/close door"
     },
     "!alarm": {
         "endpoint": "/alarm",
-        "reaction_success": "🚨",
+        "is_toggle": True,
+        "reaction_on": "🚨",               # Alarm active
+        "reaction_off": "🔕",              # Alarm off
         "reaction_fail": "❌",
-        "message_success": "ALARM TRIGGERED!",
+        "message_on": "ALARM ACTIVATED!",
+        "message_off": "Alarm deactivated",
         "message_fail": "Alarm system offline",
-        "description": "Trigger alarm"
+        "description": "Toggle alarm"
     },
 }
 
@@ -72,6 +86,40 @@ async def on_message(message):
             await handle_command(message, trigger, config)
             return  # Only handle first matching command
 
+async def handle_toggle_response(message, trigger, config, response):
+    """Handle response for toggle commands - picks on/off reaction based on state"""
+    state = None
+
+    # Try to parse JSON response from Minecraft
+    try:
+        data = response.json()
+        state = data.get("state", "").lower()
+    except:
+        # If not JSON, check for "on" or "off" in response text
+        text = response.text.lower()
+        if "on" in text:
+            state = "on"
+        elif "off" in text:
+            state = "off"
+
+    # Pick reaction and message based on state
+    if state == "on":
+        if config.get("reaction_on"):
+            await message.add_reaction(config["reaction_on"])
+        if config.get("message_on"):
+            await message.channel.send(config["message_on"])
+    elif state == "off":
+        if config.get("reaction_off"):
+            await message.add_reaction(config["reaction_off"])
+        if config.get("message_off"):
+            await message.channel.send(config["message_off"])
+    else:
+        # Unknown state - use "on" as default (something happened)
+        if config.get("reaction_on"):
+            await message.add_reaction(config["reaction_on"])
+        if config.get("message_on"):
+            await message.channel.send(config["message_on"])
+
 async def handle_command(message, trigger, config):
     """Handle a matched command"""
     url = MINECRAFT_BASE_URL + config["endpoint"]
@@ -90,28 +138,32 @@ async def handle_command(message, trigger, config):
         )
 
         if response.status_code == 200:
-            # Success reactions and messages
-            if config["reaction_success"]:
-                await message.add_reaction(config["reaction_success"])
-            if config["message_success"]:
-                await message.channel.send(config["message_success"])
+            # Check if this is a toggle command
+            if config.get("is_toggle"):
+                await handle_toggle_response(message, trigger, config, response)
+            else:
+                # Non-toggle: use simple success reaction/message
+                if config.get("reaction_success"):
+                    await message.add_reaction(config["reaction_success"])
+                if config.get("message_success"):
+                    await message.channel.send(config["message_success"])
             print(f"[{trigger}] Triggered {config['endpoint']}! Response: {response.text}")
         else:
             # Error reactions and messages
-            if config["reaction_fail"]:
+            if config.get("reaction_fail"):
                 await message.add_reaction(config["reaction_fail"])
-            if config["message_fail"]:
+            if config.get("message_fail"):
                 await message.channel.send(config["message_fail"])
             print(f"[{trigger}] Error: {response.status_code} - {response.text}")
 
     except requests.exceptions.ConnectionError:
-        if config["reaction_fail"]:
+        if config.get("reaction_fail"):
             await message.add_reaction(config["reaction_fail"])
-        if config["message_fail"]:
+        if config.get("message_fail"):
             await message.channel.send(config["message_fail"])
         print(f"[{trigger}] Error: Could not connect to Minecraft server")
     except Exception as e:
-        if config["reaction_fail"]:
+        if config.get("reaction_fail"):
             await message.add_reaction(config["reaction_fail"])
         await message.channel.send(f"Error: {e}")
         print(f"[{trigger}] Error: {e}")
