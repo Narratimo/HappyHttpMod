@@ -41,12 +41,12 @@ EiraRelay/
 │       ├── client/gui/          # Configuration GUIs
 │       ├── platform/            # Platform services, config, registry
 │       ├── registry/            # ModBlocks, ModItems, ModBlockEntities
-│       ├── enums/               # EnumHttpMethod
+│       ├── enums/               # EnumHttpMethod, EnumPoweredType, EnumTimerUnit
 │       ├── mixin/               # Client mixins
 │       └── utils/               # JsonUtils, NBTConverter, QueryBuilder
-├── common/                      # Disabled (MC 1.20.2)
-├── forge/                       # Disabled (MC 1.20.2)
-├── fabric/                      # Incomplete
+├── common/                      # Disabled (MC 1.20.2) - no.eira.relay
+├── forge/                       # Disabled (MC 1.20.2) - no.eira.relay
+├── fabric/                      # Disabled (MC 1.20.2) - no.eira.relay
 └── doc/                         # Documentation
 ```
 
@@ -104,29 +104,18 @@ neoforge/build/libs/Eira Relay-neoforge-1.21.1-1.1.0.jar
 | `refactor/*` | Code refactoring |
 | `docs/*` | Documentation updates |
 
-## Next Action: Merge to Main
+## Next Action: Port common/forge/fabric to MC 1.21.1
 
-**Create PR:** https://github.com/Narratimo/HappyHttpMod/compare/main...refactor/rename-eira-relay?expand=1
-
-Branch `refactor/rename-eira-relay` contains all changes (PRs #4-8) ready for merge.
-
-## Current Work: Power Modes (PR #9)
-
-Porting power modes from dev branch:
-- `EnumPoweredType.java` - Toggle vs Timer
-- `EnumTimerUnit.java` - Ticks or seconds
-- Block entity and GUI updates
+Now that all modules use `no.eira.relay` package, the next step is to port common/forge/fabric to MC 1.21.1:
+1. Update gradle.properties for MC 1.21.1 / Java 21
+2. Update Forge/Fabric API dependencies
+3. Re-enable modules in settings.gradle
+4. Port code to match neoforge (HTTP Sender, power modes, utilities)
 
 ## Completed PRs
 
 | PR# | Branch | Description | Status |
 |-----|--------|-------------|--------|
-| 1 | merge/dev-to-main | HTTP Sender (MC 1.20.2) | ✅ |
-| 2 | merge/feenixnet-to-main | NeoForge 1.21.1 port | ✅ |
-| 3 | docs/add-claude-md-and-analysis-structure | Documentation | ✅ |
-| 4 | fix/neoforge-mixin-config | Fix mixin package | ✅ |
-| 5 | feature/neoforge-http-sender | Port HTTP Sender | ✅ |
-| 6 | fix/handler-cleanup-on-remove | Memory leak fix | ✅ |
-| 7 | fix/default-localhost-binding | Security fix | ✅ |
-| 8 | refactor/rename-eira-relay | Rename to Eira Relay | ✅ |
-| 9 | feature/power-modes | Power modes (Toggle/Timer) | 🔄 In Progress |
+| 53 | refactor/rename-eira-relay | Rename to Eira Relay | ✅ |
+| 54 | feature/power-modes | Power modes (Toggle/Timer) | ✅ |
+| 55 | refactor/rename-common-forge-fabric-packages | Rename packages in common/forge/fabric | ✅ |
