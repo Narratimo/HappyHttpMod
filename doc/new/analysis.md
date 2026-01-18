@@ -1,8 +1,10 @@
-# Project Analysis: Happy HTTP Mod
+# Project Analysis: Eira Relay
+
+> **Rebranding:** The mod is being renamed from "Happy HTTP" / "HttpAutomator" to "Eira Relay" (www.eira.no)
 
 ## Executive Summary
 
-Happy HTTP Mod is a Minecraft mod designed to bridge the in-game world with external systems using HTTP webhooks. The mod is maintained by Eira, a non-commercial organization focused on teaching kids and teenagers to code.
+**Eira Relay** (formerly Happy HTTP Mod) is a Minecraft mod designed to bridge the in-game world with external systems using HTTP webhooks. The mod is maintained by Eira, a non-commercial organization focused on teaching kids and teenagers to code.
 
 **Primary Goal:** Enable adventure map creators to build interactive experiences that mix physical/digital world events with Minecraft, allowing bidirectional triggering between the two.
 

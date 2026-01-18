@@ -1,6 +1,65 @@
-# Immediate Tasks: Happy HTTP Mod
+# Immediate Tasks: Eira Relay
+
+> **Rebranding:** The mod is being renamed from "Happy HTTP" / "HttpAutomator" to "Eira Relay" (www.eira.no)
 
 ## Critical Priority
+
+### 0. Rename Mod to "Eira Relay"
+
+**Status:** New - Blocking for release
+
+**Scope:** Rename all references from "Happy HTTP" / "HttpAutomator" to "Eira Relay"
+
+**Code Changes Required:**
+
+| Location | Current | New |
+|----------|---------|-----|
+| `gradle.properties` | `mod_id = httpautomator` | `mod_id = eirarelay` |
+| `gradle.properties` | `mod_name = HttpAutomator` | `mod_name = Eira Relay` |
+| Package name | `com.clapter.httpautomator` | `com.eira.relay` (or similar) |
+| Config file | `happyhttp-common.toml` | `eirarelay-common.toml` |
+| Assets path | `assets/happyhttp/` | `assets/eirarelay/` |
+| Mixin configs | `httpautomator` references | `eirarelay` references |
+| Constants.java | `MOD_ID = "httpautomator"` | `MOD_ID = "eirarelay"` |
+
+**Documentation Changes Required:**
+- README.md - Update title, description, all references
+- All doc/*.md files - Update mod name references
+- doc/new/*.md files - Already updated with new name
+- Code comments and Javadoc
+
+**Asset Changes Required:**
+- Rename `assets/happyhttp/` to `assets/eirarelay/`
+- Update all blockstate/model JSON references
+- Update lang files (en_us.json, etc.)
+
+**Steps:**
+1. Create branch `refactor/rename-to-eira-relay`
+2. Update gradle.properties (mod_id, mod_name)
+3. Rename package from `com.clapter.httpautomator` to new package
+4. Rename asset folders
+5. Update all config file references
+6. Update mixin configs
+7. Update documentation
+8. Test build on all platforms
+9. Create PR
+
+**Subtasks:**
+- [ ] Update gradle.properties
+- [ ] Rename Java packages
+- [ ] Rename asset folders
+- [ ] Update Constants.java
+- [ ] Update mixin configs (common, forge, neoforge)
+- [ ] Update config file names
+- [ ] Update README.md
+- [ ] Update all doc/*.md files
+- [ ] Update lang files
+- [ ] Update blockstate/model JSONs
+- [ ] Test Forge build
+- [ ] Test NeoForge build
+- [ ] Test Fabric build
+
+---
 
 ### 1. Merge `dev` Branch to `main`
 
@@ -125,8 +184,7 @@ common/src/main/java/.../utils/QueryBuilder.java
 ### 9. Document Actual Config File Locations
 
 **Issue:** Documentation mentions `happyhttp-common.toml` but code uses different paths
-
-**Action:** Verify and document correct config file paths for each platform
+**Action:** Verify and document correct config file paths for each platform. 
 
 ---
 

@@ -1,4 +1,6 @@
-# Features Analysis: Happy HTTP Mod
+# Features Analysis: Eira Relay
+
+> **Rebranding:** The mod is being renamed from "Happy HTTP" / "HttpAutomator" to "Eira Relay" (www.eira.no)
 
 ## Implemented Features
 

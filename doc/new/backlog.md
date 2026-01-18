@@ -1,10 +1,12 @@
-# Feature Backlog: Happy HTTP Mod
+# Feature Backlog: Eira Relay
+
+> **Rebranding:** The mod is being renamed from "Happy HTTP" / "HttpAutomator" to "Eira Relay" (www.eira.no)
 
 ## Priority Overview
 
 | Priority | Category | Items |
 |----------|----------|-------|
-| P0 | Critical | Merge dev, Fix NeoForge |
+| P0 | Critical | **Rename to Eira Relay**, Merge dev, Fix NeoForge |
 | P1 | Tier 1 | Setup & Support features |
 | P2 | Tier 2 | Builder Experience features |
 | P3 | Tier 3 | Advanced Mechanics |
@@ -13,6 +15,24 @@
 ---
 
 ## P0: Critical (Blocking)
+
+### Rename to "Eira Relay"
+
+**Impact:** Brand consistency, release blocker
+**Effort:** Medium (many files, but mechanical changes)
+**Website:** www.eira.no
+
+**Scope:**
+- Rename mod_id: `httpautomator` → `eirarelay`
+- Rename mod_name: `HttpAutomator` → `Eira Relay`
+- Rename package: `com.clapter.httpautomator` → TBD (e.g., `no.eira.relay`)
+- Rename assets: `assets/happyhttp/` → `assets/eirarelay/`
+- Rename configs: `happyhttp-*.toml` → `eirarelay-*.toml`
+- Update all documentation
+
+See `doc/new/tasks.md` for detailed subtasks.
+
+---
 
 ### Merge `dev` Branch to `main`
 
@@ -338,6 +358,9 @@
 ## Implementation Order
 
 ```
+Phase 0: Rebranding
+└── Rename to Eira Relay (all code, assets, docs)
+
 Phase 1: Foundation
 ├── Merge dev branch
 ├── Fix NeoForge mixin
@@ -374,6 +397,7 @@ Phase 5: Tier 3
 
 | Item | Status | PR | Notes |
 |------|--------|-----|-------|
+| **Rename to Eira Relay** | Pending | - | Release blocker |
 | Merge dev | Pending | - | Critical path |
 | NeoForge mixin fix | Pending | - | Trivial |
 | NeoForge events | Pending | - | Blocking |

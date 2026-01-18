@@ -1,9 +1,12 @@
-# Technical Architecture: Happy HTTP Mod
+# Technical Architecture: Eira Relay
+
+> **Rebranding:** The mod is being renamed from "Happy HTTP" / "HttpAutomator" to "Eira Relay" (www.eira.no)
+> Package and asset renames are pending.
 
 ## Project Structure
 
 ```
-HappyHttpMod/
+EiraRelay/ (currently HappyHttpMod/)
 ├── common/                          # Shared code across all platforms
 │   └── src/main/java/com/clapter/httpautomator/
 │       ├── CommonClass.java         # Entry point, HTTP server lifecycle

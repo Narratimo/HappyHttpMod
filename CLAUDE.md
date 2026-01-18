@@ -1,4 +1,7 @@
-# Happy HTTP Mod - Project Guide
+# Eira Relay - Project Guide
+
+> **Rebranding in progress:** The mod is being renamed from "Happy HTTP" / "HttpAutomator" to "Eira Relay"
+> Website: www.eira.no
 
 ## Workflow Rules
 
@@ -10,7 +13,7 @@
 
 ## Project Overview
 
-Happy HTTP Mod bridges Minecraft with external systems via HTTP webhooks. It provides:
+**Eira Relay** (formerly Happy HTTP Mod) bridges Minecraft with external systems via HTTP webhooks. It provides:
 - **HTTP Receiver Block** - Triggers redstone signals from incoming webhooks
 - **HTTP Sender Block** - Sends HTTP requests on redstone signals
 

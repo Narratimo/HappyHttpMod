@@ -1,4 +1,6 @@
-# User Stories: Happy HTTP Mod
+# User Stories: Eira Relay
+
+> **Rebranding:** The mod is being renamed from "Happy HTTP" / "HttpAutomator" to "Eira Relay" (www.eira.no)
 
 ## Core Use Case Stories
 
