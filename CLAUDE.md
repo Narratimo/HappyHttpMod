@@ -117,9 +117,9 @@ neoforge/build/libs/Eira Relay-neoforge-1.21.1-1.1.0.jar
 
 ## Next Actions
 
-1. **Port power modes to forge** - Add EnumPoweredType, EnumTimerUnit to common/forge
-2. **Complete fabric module** - Finish fabric implementation for MC 1.20.2
-3. **Add translations** - Add language files for GUI strings
+1. **Complete fabric module** - Finish fabric implementation for MC 1.20.2
+2. **Add translations** - Add language files for GUI strings
+3. **Add power modes to HTTP Sender** - Timer/switch modes for sender block
 
 ## Completed PRs
 
@@ -130,3 +130,4 @@ neoforge/build/libs/Eira Relay-neoforge-1.21.1-1.1.0.jar
 | 55 | refactor/rename-common-forge-fabric-packages | Rename packages in common/forge/fabric | ✅ |
 | 56 | feature/port-modules-mc-1.21.1 | Enable multi-version builds | ✅ |
 | 57 | feature/forge-http-sender | HTTP Sender for forge/common | ✅ |
+| 58 | feature/forge-power-modes | Power modes for forge/common | ✅ |

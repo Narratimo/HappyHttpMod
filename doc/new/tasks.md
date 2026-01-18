@@ -16,10 +16,11 @@ All critical work has been completed via PRs.
 | 6 | fix/handler-cleanup-on-remove | Fix memory leak (handler cleanup) | ✅ Complete |
 | 7 | fix/default-localhost-binding | Security: bind to localhost | ✅ Complete |
 | 8 | refactor/rename-eira-relay | Full mod rename to Eira Relay | ✅ Complete |
-| 9 | feature/power-modes | **Power modes (Switch/Timer)** | 🔄 Pending |
+| 9 | feature/power-modes | **Power modes (Switch/Timer)** | ✅ Complete |
 | 55 | refactor/rename-common-forge-fabric-packages | Rename packages to no.eira.relay | ✅ Complete |
 | 56 | feature/port-modules-mc-1.21.1 | Multi-version support | ✅ Complete |
 | 57 | feature/forge-http-sender | **HTTP Sender for forge/common** | ✅ Complete |
+| 58 | feature/forge-power-modes | **Power modes for forge/common** | ✅ Complete |
 
 ---
 
