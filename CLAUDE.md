@@ -117,9 +117,10 @@ neoforge/build/libs/Eira Relay-neoforge-1.21.1-1.1.0.jar
 
 ## Next Actions
 
-1. **Add Norwegian translations** - Add no_no.json for Norwegian users
-2. **Complete fabric module** - Finish fabric implementation for MC 1.20.2
-3. **Port binding helper** - UI to configure port binding
+All planned UX improvements are complete. Remaining backlog (deferred indefinitely):
+- Visual connection cues
+- Authentication helpers
+- Complete Fabric module
 
 ## Completed PRs
 
@@ -134,3 +135,6 @@ neoforge/build/libs/Eira Relay-neoforge-1.21.1-1.1.0.jar
 | 59 | fix/common-translations | Fix translation file for forge | ✅ |
 | 60 | feature/sender-power-modes | Power modes for HTTP Sender | ✅ |
 | 61 | feature/global-variables | Global variables | ✅ |
+| 62 | feature/port-binding-helper | Port/IP info in Receiver settings | ✅ |
+| 63 | feature/inline-testing | Test button for HTTP Sender | ✅ |
+| 64 | feature/norwegian-translations | Norwegian translations | ✅ |

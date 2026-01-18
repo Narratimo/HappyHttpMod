@@ -24,6 +24,9 @@ All critical work has been completed via PRs.
 | 59 | fix/common-translations | Fix translation file for forge | ✅ Complete |
 | 60 | feature/sender-power-modes | **Power modes for HTTP Sender** | ✅ Complete |
 | 61 | feature/global-variables | **Global variables** | ✅ Complete |
+| 62 | feature/port-binding-helper | **Port/IP info display** | ✅ Complete |
+| 63 | feature/inline-testing | **Test button for HTTP Sender** | ✅ Complete |
+| 64 | feature/norwegian-translations | **Norwegian translations** | ✅ Complete |
 
 ---
 
@@ -143,11 +146,12 @@ The `refactor/rename-eira-relay` branch contains all changes from PRs #4-8 and n
 |---------|----------|-------|
 | ~~Power modes (Toggle/Timer)~~ | ✅ Complete | PRs #9, #58, #60 |
 | ~~Global variables~~ | ✅ Complete | PR #61 |
-| Norwegian translations | Low | Add no_no.json |
-| Port binding helper | Low | Tier 1 feature |
-| Visual connection cues | Low | Tier 1 feature |
-| Inline testing | Low | Tier 1 feature |
-| Authentication helpers | Low | Tier 1 feature |
+| ~~Port binding helper~~ | ✅ Complete | PR #62 |
+| ~~Inline testing~~ | ✅ Complete | PR #63 |
+| ~~Norwegian translations~~ | ✅ Complete | PR #64 |
+| Visual connection cues | Deferred | Nice to have |
+| Authentication helpers | Deferred | Complex feature |
+| Complete Fabric module | Deferred | No demand |
 
 ---
 
