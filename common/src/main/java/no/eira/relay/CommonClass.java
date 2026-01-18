@@ -1,6 +1,8 @@
 package no.eira.relay;
 
+import no.eira.relay.http.HttpClientImpl;
 import no.eira.relay.http.HttpServerImpl;
+import no.eira.relay.http.api.IHttpClient;
 import no.eira.relay.http.api.IHttpServer;
 import no.eira.relay.registry.ModBlockEntities;
 import no.eira.relay.registry.ModBlocks;
@@ -12,6 +14,7 @@ import java.io.IOException;
 public class CommonClass {
 
     public static final IHttpServer HTTP_SERVER = new HttpServerImpl();
+    public static final IHttpClient HTTP_CLIENT = new HttpClientImpl();
 
     public static void init() {
         ModBlocks.registerBlocks();
