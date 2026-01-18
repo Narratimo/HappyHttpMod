@@ -1,0 +1,16 @@
+{
+  "gui.eirarelay.http_receiver_settings_screen": "HTTP Mottaker Innstillinger",
+  "gui.eirarelay.http_receiver_startbutton": "Lagre",
+  "gui.eirarelay.http_sender_settings_screen": "HTTP Sender Innstillinger",
+  "gui.eirarelay.save_button": "Lagre",
+  "gui.eirarelay.url_label": "URL:",
+  "gui.eirarelay.method_label": "Metode",
+  "gui.eirarelay.power_mode_label": "Strømmodus:",
+  "gui.eirarelay.timer_label": "Tidtaker:",
+  "gui.eirarelay.powered_type_switch": "Bryter",
+  "gui.eirarelay.powered_type_timer": "Tidtaker",
+  "gui.eirarelay.timer_unit_ticks": "Tikk",
+  "gui.eirarelay.timer_unit_seconds": "Sekunder",
+  "block.eirarelay.receiver": "HTTP Mottaker",
+  "block.eirarelay.sender": "HTTP Sender"
+}
