@@ -104,15 +104,29 @@ neoforge/build/libs/Eira Relay-neoforge-1.21.1-1.1.0.jar
 | `refactor/*` | Code refactoring |
 | `docs/*` | Documentation updates |
 
+## Next Action: Merge to Main
+
+**Create PR:** https://github.com/Narratimo/HappyHttpMod/compare/main...refactor/rename-eira-relay?expand=1
+
+Branch `refactor/rename-eira-relay` contains all changes (PRs #4-8) ready for merge.
+
+## Current Work: Power Modes (PR #9)
+
+Porting power modes from dev branch:
+- `EnumPoweredType.java` - Toggle vs Timer
+- `EnumTimerUnit.java` - Ticks or seconds
+- Block entity and GUI updates
+
 ## Completed PRs
 
-| PR# | Branch | Description |
-|-----|--------|-------------|
-| 1 | merge/dev-to-main | HTTP Sender (MC 1.20.2) |
-| 2 | merge/feenixnet-to-main | NeoForge 1.21.1 port |
-| 3 | docs/add-claude-md-and-analysis-structure | Documentation |
-| 4 | fix/neoforge-mixin-config | Fix mixin package |
-| 5 | feature/neoforge-http-sender | Port HTTP Sender |
-| 6 | fix/handler-cleanup-on-remove | Memory leak fix |
-| 7 | fix/default-localhost-binding | Security fix |
-| 8 | refactor/rename-eira-relay | **Rename to Eira Relay** |
+| PR# | Branch | Description | Status |
+|-----|--------|-------------|--------|
+| 1 | merge/dev-to-main | HTTP Sender (MC 1.20.2) | ✅ |
+| 2 | merge/feenixnet-to-main | NeoForge 1.21.1 port | ✅ |
+| 3 | docs/add-claude-md-and-analysis-structure | Documentation | ✅ |
+| 4 | fix/neoforge-mixin-config | Fix mixin package | ✅ |
+| 5 | feature/neoforge-http-sender | Port HTTP Sender | ✅ |
+| 6 | fix/handler-cleanup-on-remove | Memory leak fix | ✅ |
+| 7 | fix/default-localhost-binding | Security fix | ✅ |
+| 8 | refactor/rename-eira-relay | Rename to Eira Relay | ✅ |
+| 9 | feature/power-modes | Power modes (Toggle/Timer) | 🔄 In Progress |

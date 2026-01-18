@@ -95,13 +95,38 @@ All components implemented:
 
 ---
 
+## Next Immediate Action
+
+### Merge to Main
+
+**Create PR:** https://github.com/Narratimo/HappyHttpMod/compare/main...refactor/rename-eira-relay?expand=1
+
+The `refactor/rename-eira-relay` branch contains all changes from PRs #4-8 and needs to be merged to `main`.
+
+---
+
+## In Progress
+
+### PR #9: Port Power Modes from Dev Branch
+
+**Status:** In Progress
+**Branch:** `feature/power-modes`
+
+**Features to port:**
+- `EnumPoweredType.java` - Toggle vs Timer modes
+- `EnumTimerUnit.java` - Ticks or seconds
+- Block entity updates for mode storage
+- GUI updates for mode selection
+
+---
+
 ## Remaining Work (Backlog)
 
 ### Future Features
 
 | Feature | Priority | Notes |
 |---------|----------|-------|
-| Power modes (Toggle/Timer) | Medium | Port from dev branch |
+| ~~Power modes (Toggle/Timer)~~ | **In Progress** | PR #9 |
 | Global variables | Medium | Port from dev branch |
 | Port binding helper | Low | Tier 1 feature |
 | Visual connection cues | Low | Tier 1 feature |
