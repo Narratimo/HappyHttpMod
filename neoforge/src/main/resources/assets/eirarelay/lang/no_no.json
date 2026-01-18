@@ -14,6 +14,15 @@
   "gui.eirarelay.port_label": "Port",
   "gui.eirarelay.ip_label": "Lokal IP",
   "gui.eirarelay.test_button": "Test",
+  "gui.eirarelay.auth_label": "Auth:",
+  "gui.eirarelay.auth_type_none": "Ingen",
+  "gui.eirarelay.auth_type_bearer": "Bearer",
+  "gui.eirarelay.auth_type_basic": "Basis",
+  "gui.eirarelay.auth_type_custom": "Egen",
+  "gui.eirarelay.discord_button": "Discord",
+  "gui.eirarelay.params_label": "Params:",
+  "gui.eirarelay.add_button": "+",
+  "gui.eirarelay.clear_button": "X",
   "block.eirarelay.receiver": "HTTP Mottaker",
   "block.eirarelay.sender": "HTTP Sender"
 }

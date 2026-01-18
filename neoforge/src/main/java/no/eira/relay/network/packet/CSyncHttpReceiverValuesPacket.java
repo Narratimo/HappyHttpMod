@@ -1,44 +1,52 @@
 package no.eira.relay.network.packet;
 
+import no.eira.relay.Constants;
 import no.eira.relay.blockentity.HttpReceiverBlockEntity;
 import no.eira.relay.client.gui.HttpReceiverSettingsScreen;
-import no.eira.relay.network.IPacketContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.jetbrains.annotations.NotNull;
 
-public class CSyncHttpReceiverValuesPacket extends BasePacket{
+public record CSyncHttpReceiverValuesPacket(BlockPos entityPos, HttpReceiverBlockEntity.Values values) implements CustomPacketPayload {
 
-    private final BlockPos entityPos;
-    private final HttpReceiverBlockEntity.Values values;
+    public static final Type<CSyncHttpReceiverValuesPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, "sync_http_receiver"));
 
-    public CSyncHttpReceiverValuesPacket(BlockPos pos, HttpReceiverBlockEntity.Values endpoint){
-        this.entityPos = pos;
-        this.values = endpoint;
+    public static final StreamCodec<FriendlyByteBuf, CSyncHttpReceiverValuesPacket> STREAM_CODEC = StreamCodec.of(
+            CSyncHttpReceiverValuesPacket::encode,
+            CSyncHttpReceiverValuesPacket::decode
+    );
+
+    private static CSyncHttpReceiverValuesPacket decode(FriendlyByteBuf buf) {
+        return new CSyncHttpReceiverValuesPacket(buf.readBlockPos(), HttpReceiverBlockEntity.Values.readBuffer(buf));
     }
 
-    public CSyncHttpReceiverValuesPacket(FriendlyByteBuf buf){
-        this(buf.readBlockPos(), HttpReceiverBlockEntity.Values.readBuffer(buf));
+    private static void encode(FriendlyByteBuf buf, CSyncHttpReceiverValuesPacket packet) {
+        buf.writeBlockPos(packet.entityPos);
+        packet.values.writeValues(buf);
     }
-
-    public void encode(FriendlyByteBuf buf){
-        buf.writeBlockPos(this.entityPos);
-        this.values.writeValues(buf);
-    }
-
 
     @Override
-    public void handle(IPacketContext context) {
-        if(context.isClientSide()){
+    public @NotNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public static void handle(CSyncHttpReceiverValuesPacket packet, IPayloadContext context) {
+        context.enqueueWork(() -> {
             ClientLevel level = Minecraft.getInstance().level;
-            BlockEntity entity = level.getBlockEntity(this.entityPos);
-            if(entity instanceof HttpReceiverBlockEntity receiver){
-                receiver.updateValues(this.values);
-                //TODO: Separate screen opening from this packet
-                Minecraft.getInstance().setScreen(new HttpReceiverSettingsScreen(receiver));
+            if (level != null) {
+                BlockEntity entity = level.getBlockEntity(packet.entityPos);
+                if (entity instanceof HttpReceiverBlockEntity receiver) {
+                    receiver.updateValues(packet.values);
+                    Minecraft.getInstance().setScreen(new HttpReceiverSettingsScreen(receiver));
+                }
             }
-        }
+        });
     }
 }

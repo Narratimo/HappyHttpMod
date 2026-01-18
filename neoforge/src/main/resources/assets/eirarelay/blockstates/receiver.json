@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "powered=true": {
+      "model": "eirarelay:block/receiver_powered"
+    },
+    "powered=false": {
+      "model": "eirarelay:block/receiver"
+    }
+  }
+}

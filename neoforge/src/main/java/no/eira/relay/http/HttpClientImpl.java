@@ -10,19 +10,30 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.Map;
 
 public class HttpClientImpl implements IHttpClient {
 
     @Override
     public String sendPost(String url, String parameters) {
+        return sendPost(url, parameters, Collections.emptyMap());
+    }
+
+    @Override
+    public String sendPost(String url, String parameters, Map<String, String> headers) {
         try {
             HttpClient client = HttpClient.newHttpClient();
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
                     .uri(new URI(url))
                     .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(parameters, StandardCharsets.UTF_8))
-                    .build();
+                    .POST(HttpRequest.BodyPublishers.ofString(parameters, StandardCharsets.UTF_8));
 
+            for (Map.Entry<String, String> header : headers.entrySet()) {
+                builder.header(header.getKey(), header.getValue());
+            }
+
+            HttpRequest request = builder.build();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             Constants.LOG.debug("HTTP POST {} - Status: {}", url, response.statusCode());
             return response.body();
@@ -34,16 +45,25 @@ public class HttpClientImpl implements IHttpClient {
 
     @Override
     public String sendGet(String url, String parameters) {
+        return sendGet(url, parameters, Collections.emptyMap());
+    }
+
+    @Override
+    public String sendGet(String url, String parameters, Map<String, String> headers) {
         try {
             String fullUrl = parameters.isEmpty() ? url : url + "?" + parameters;
             URI uri = URI.create(fullUrl);
 
             HttpClient client = HttpClient.newHttpClient();
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
                     .uri(uri)
-                    .GET()
-                    .build();
+                    .GET();
 
+            for (Map.Entry<String, String> header : headers.entrySet()) {
+                builder.header(header.getKey(), header.getValue());
+            }
+
+            HttpRequest request = builder.build();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             Constants.LOG.debug("HTTP GET {} - Status: {}", fullUrl, response.statusCode());
             return response.body();

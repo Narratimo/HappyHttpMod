@@ -2,13 +2,13 @@ package no.eira.relay.block;
 
 import no.eira.relay.blockentity.HttpSenderBlockEntity;
 import no.eira.relay.network.packet.CHttpSenderOpenGuiPacket;
-import no.eira.relay.platform.Services;
 import no.eira.relay.registry.ModBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -46,9 +46,9 @@ public class HttpSenderBlock extends Block implements EntityBlock {
         if (!level.isClientSide) {
             if (level.getBlockEntity(pos) instanceof HttpSenderBlockEntity entity) {
                 if (!player.isCreative()) return InteractionResult.FAIL;
-                Services.PACKET_HANDLER.sendPacketToPlayer(
-                    new CHttpSenderOpenGuiPacket(pos, entity.getValues()),
-                    (ServerPlayer) player
+                PacketDistributor.sendToPlayer(
+                    (ServerPlayer) player,
+                    new CHttpSenderOpenGuiPacket(pos, entity.getValues())
                 );
             }
         }
