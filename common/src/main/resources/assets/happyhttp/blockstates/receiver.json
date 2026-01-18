@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "powered=true": {
+      "model": "happyhttp:block/receiver_powered"
+    },
+    "powered=false": {
+      "model": "happyhttp:block/receiver"
+    }
+  }
+}

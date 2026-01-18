@@ -4,7 +4,6 @@ import com.clapter.httpautomator.network.PacketDirection;
 import com.clapter.httpautomator.network.packet.BasePacket;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
 
 import java.util.function.BiConsumer;
 import java.util.function.Function;

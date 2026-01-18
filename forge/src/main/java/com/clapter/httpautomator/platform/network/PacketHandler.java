@@ -3,8 +3,6 @@ package com.clapter.httpautomator.platform.network;
 import com.clapter.httpautomator.Constants;
 import com.clapter.httpautomator.network.PacketDirection;
 import com.clapter.httpautomator.network.packet.BasePacket;
-import com.clapter.httpautomator.network.packet.CSyncHttpReceiverValuesPacket;
-import com.clapter.httpautomator.network.packet.SUpdateHttpReceiverValuesPacket;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -15,7 +13,6 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.SimpleChannel;
 
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class PacketHandler implements IPacketHandler {
@@ -27,22 +24,25 @@ public class PacketHandler implements IPacketHandler {
             .networkProtocolVersion(1)
             .simpleChannel();
 
-    //THE HANDLER METHOD FOR HANDLING PACKETS AFTER THEIR DECODING PROCESS
-    //HAS TO START HERE, SINCE THE CONTEXT OBJECT IS A FORGE CLASS
-    private static void handle(BasePacket packet, CustomPayloadEvent.Context context) {
-        context.enqueueWork(() -> packet.handle(new PacketContext(context)));
-        context.setPacketHandled(true);
-    }
 
     @Override
     public <T extends BasePacket> void registerPacket(Class<T> packetClass, BiConsumer<T, FriendlyByteBuf> encode,
                                                       Function<FriendlyByteBuf, T> decode, PacketDirection direction) {
         NetworkDirection dir = this.getNetworkDirectionFromPacketDirection(direction);
-        INSTANCE.messageBuilder(packetClass, dir)
-                .encoder(encode)
-                .decoder(decode)
-                .consumerMainThread(PacketHandler::handle)
-                .add();
+        if(dir.equals(NetworkDirection.PLAY_TO_SERVER)) {
+            INSTANCE.messageBuilder(packetClass, dir)
+                    .encoder(encode)
+                    .decoder(decode)
+                    .consumerMainThread(PacketClientHandler::handle)
+                    .add();
+        }
+        if(dir.equals(NetworkDirection.PLAY_TO_CLIENT)){
+            INSTANCE.messageBuilder(packetClass, dir)
+                    .encoder(encode)
+                    .decoder(decode)
+                    .consumerMainThread(PacketServerHandler::handle)
+                    .add();
+        }
     }
 
     @Override

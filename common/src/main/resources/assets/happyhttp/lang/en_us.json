@@ -1,0 +1,19 @@
+{
+  "gui.happyhttp.http_receiver_settings_screen": "Receiver Settings",
+  "gui.happyhttp.http_receiver_settings_screen_endpoint_text": "Endpoint:",
+  "gui.happyhttp.http_receiver_settings_screen_power_type": "Power Type:",
+  "gui.happyhttp.http_receiver_startbutton": "Save",
+  "gui.happyhttp.http_sender_startbutton": "Save",
+  "gui.happyhttp.http_receiver_settings_screen_current_type": "Current",
+  "gui.happyhttp.powered_type_switch": "Switch",
+  "gui.happyhttp.powered_type_timer": "Timer",
+  "gui.happyhttp.timer_unit_ticks": "Ticks",
+  "gui.happyhttp.timer_unit_seconds": "Seconds",
+  "gui.happyhttp.http_receiver_settings_screen_current_timer_unit": "Timer Unit",
+  "gui.happyhttp.http_receiver_redirect_text": "Redirect Url:",
+  "gui.happyhttp.http_receiver_parameters_text": "Parameters:",
+  "gui.happyhttp.http_sender_endpoint": "Endpoint:",
+  "gui.happyhttp.http_sender_parameters": "Request \nParameters:",
+  "block.happyhttp.sender": "Http Sender",
+  "block.happyhttp.receiver": "Http Receiver"
+}

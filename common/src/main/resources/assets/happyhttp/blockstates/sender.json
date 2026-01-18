@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=true": {
+      "model": "happyhttp:block/sender_lit"
+    },
+    "lit=false": {
+      "model": "happyhttp:block/sender"
+    }
+  }
+}
