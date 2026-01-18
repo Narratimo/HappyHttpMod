@@ -18,7 +18,7 @@
 | Module | MC Version | Java | Status |
 |--------|------------|------|--------|
 | **neoforge** | 1.21.1 | 21 | ✅ Active - Full features |
-| **forge** | 1.20.2 | 17 | ✅ Active - HTTP Receiver only |
+| **forge** | 1.20.2 | 17 | ✅ Active - Full features |
 | **common** | 1.20.2 | 17 | ✅ Shared code for forge |
 | **fabric** | 1.20.2 | 17 | ⏸️ Disabled - Incomplete |
 
@@ -55,8 +55,8 @@ EiraRelay/
 │       ├── enums/               # EnumHttpMethod, EnumPoweredType, EnumTimerUnit
 │       ├── mixin/               # Client mixins
 │       └── utils/               # JsonUtils, NBTConverter, QueryBuilder
-├── common/                      # MC 1.20.2 / Java 17 - Shared code
-├── forge/                       # MC 1.20.2 / Java 17 - HTTP Receiver only
+├── common/                      # MC 1.20.2 / Java 17 - Shared code (full features)
+├── forge/                       # MC 1.20.2 / Java 17 - Full features
 ├── fabric/                      # MC 1.20.2 / Java 17 - Disabled (incomplete)
 └── doc/                         # Documentation
 ```
@@ -117,9 +117,9 @@ neoforge/build/libs/Eira Relay-neoforge-1.21.1-1.1.0.jar
 
 ## Next Actions
 
-1. **Port HTTP Sender to forge** - Add HttpSenderBlock to MC 1.20.2 forge module
-2. **Port power modes to forge** - Add EnumPoweredType, EnumTimerUnit to forge
-3. **Complete fabric module** - Finish fabric implementation for MC 1.20.2
+1. **Port power modes to forge** - Add EnumPoweredType, EnumTimerUnit to common/forge
+2. **Complete fabric module** - Finish fabric implementation for MC 1.20.2
+3. **Add translations** - Add language files for GUI strings
 
 ## Completed PRs
 
@@ -128,4 +128,5 @@ neoforge/build/libs/Eira Relay-neoforge-1.21.1-1.1.0.jar
 | 53 | refactor/rename-eira-relay | Rename to Eira Relay | ✅ |
 | 54 | feature/power-modes | Power modes (Toggle/Timer) | ✅ |
 | 55 | refactor/rename-common-forge-fabric-packages | Rename packages in common/forge/fabric | ✅ |
-| 56 | feature/multi-version-support | Enable multi-version builds | 🔄 In Progress |
+| 56 | feature/port-modules-mc-1.21.1 | Enable multi-version builds | ✅ |
+| 57 | feature/forge-http-sender | HTTP Sender for forge/common | ✅ |
