@@ -28,12 +28,18 @@ public class HttpServerImpl implements IHttpServer {
         handlerToRegisterQueue = new HashMap<String, IHttpHandler>();
     }
 
+    // Default to localhost for security - only accessible from this machine
+    private static final String DEFAULT_BIND_ADDRESS = "127.0.0.1";
+
     public boolean startServer() throws IOException {
-        System.out.println("PORT: "+Services.HTTP_CONFIG.getPort());
-        server = HttpServer.create(new InetSocketAddress(8080), 0);
+        int port = Services.HTTP_CONFIG.getPort();
+        // Bind to localhost by default for security
+        InetSocketAddress address = new InetSocketAddress(DEFAULT_BIND_ADDRESS, port);
+        server = HttpServer.create(address, 0);
         server.setExecutor(null); // creates a default executor
         server.start();
         this.handleHandlersInQueue();
+        System.out.println("HTTP Server started on " + DEFAULT_BIND_ADDRESS + ":" + port);
         return true;
     }
 
