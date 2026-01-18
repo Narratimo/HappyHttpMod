@@ -14,12 +14,20 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CompletableFuture;
+
 public class HttpSenderSettingsScreen extends Screen {
 
     private static final Component TITLE = Component.translatable("gui." + Constants.MOD_ID + ".http_sender_settings_screen");
     private static final Component SAVE_TEXT = Component.translatable("gui." + Constants.MOD_ID + ".save_button");
     private static final Component URL_LABEL = Component.translatable("gui." + Constants.MOD_ID + ".url_label");
     private static final Component METHOD_LABEL = Component.translatable("gui." + Constants.MOD_ID + ".method_label");
+    private static final Component TEST_TEXT = Component.translatable("gui." + Constants.MOD_ID + ".test_button");
 
     private final int screenWidth;
     private final int screenHeight;
@@ -28,6 +36,7 @@ public class HttpSenderSettingsScreen extends Screen {
     private final HttpSenderBlockEntity blockEntity;
 
     private Button saveButton;
+    private Button testButton;
     private EditBox urlInput;
     private CycleButton<EnumHttpMethod> methodButton;
     private Button powerModeButton;
@@ -35,6 +44,8 @@ public class HttpSenderSettingsScreen extends Screen {
     private Button timerUnitButton;
 
     private String urlText;
+    private String testResult = "";
+    private int testResultColor = 0xAAAAAA;
     private EnumHttpMethod httpMethod;
     private EnumPoweredType poweredType;
     private float timerValue;
@@ -111,6 +122,13 @@ public class HttpSenderSettingsScreen extends Screen {
                 .build()
         );
 
+        // Test button
+        this.testButton = addRenderableWidget(Button.builder(
+                TEST_TEXT, this::handleTestButton)
+                .bounds(leftPos + 100, topPos + 130, 80, 20)
+                .build()
+        );
+
         updateTimerVisibility();
     }
 
@@ -158,6 +176,48 @@ public class HttpSenderSettingsScreen extends Screen {
         }
     }
 
+    private void handleTestButton(Button button) {
+        if (urlText == null || urlText.isEmpty()) {
+            testResult = "Error: URL is empty";
+            testResultColor = 0xFF5555;
+            return;
+        }
+
+        testResult = "Testing...";
+        testResultColor = 0xFFFF55;
+        testButton.active = false;
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                HttpClient client = HttpClient.newHttpClient();
+                HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+                        .uri(new URI(urlText));
+
+                if (httpMethod == EnumHttpMethod.POST) {
+                    requestBuilder.header("Content-Type", "application/json")
+                            .POST(HttpRequest.BodyPublishers.ofString("{}", StandardCharsets.UTF_8));
+                } else {
+                    requestBuilder.GET();
+                }
+
+                HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+                int status = response.statusCode();
+
+                if (status >= 200 && status < 300) {
+                    testResult = "OK: " + status;
+                    testResultColor = 0x55FF55;
+                } else {
+                    testResult = "Error: " + status;
+                    testResultColor = 0xFF5555;
+                }
+            } catch (Exception e) {
+                testResult = "Error: " + e.getMessage();
+                testResultColor = 0xFF5555;
+            }
+            testButton.active = true;
+        });
+    }
+
     private boolean checkValues() {
         return urlText != null && !urlText.isEmpty();
     }
@@ -166,6 +226,11 @@ public class HttpSenderSettingsScreen extends Screen {
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         guiGraphics.drawString(font, URL_LABEL, leftPos + 10, topPos + 18, 0xFFFFFF);
+
+        // Display test result below buttons
+        if (!testResult.isEmpty()) {
+            guiGraphics.drawString(font, testResult, leftPos + 10, topPos + 155, testResultColor);
+        }
     }
 
     @Override

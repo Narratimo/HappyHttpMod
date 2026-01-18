@@ -13,6 +13,7 @@
   "gui.eirarelay.timer_unit_seconds": "Seconds",
   "gui.eirarelay.port_label": "Port",
   "gui.eirarelay.ip_label": "Local IP",
+  "gui.eirarelay.test_button": "Test",
   "block.eirarelay.receiver": "HTTP Receiver",
   "block.eirarelay.sender": "HTTP Sender"
 }
