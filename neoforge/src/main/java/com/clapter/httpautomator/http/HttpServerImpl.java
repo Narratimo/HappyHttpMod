@@ -63,6 +63,26 @@ public class HttpServerImpl implements IHttpServer {
         return null;
     }
 
+    @Override
+    public void unregisterHandler(String url) {
+        if (url == null || url.isEmpty()) return;
+
+        // Remove from queue if not yet registered
+        handlerToRegisterQueue.remove(url);
+
+        // Remove from active handlers
+        if (handlerMap.containsKey(url)) {
+            handlerMap.remove(url);
+            if (server != null) {
+                try {
+                    server.removeContext(url);
+                } catch (IllegalArgumentException e) {
+                    // Context doesn't exist, ignore
+                }
+            }
+        }
+    }
+
     private void handleRegisteringHandlers(IHttpHandler handler) {
         if(!handlerMap.containsKey(handler.getUrl())) {
             registerAndPutInMap(handler);

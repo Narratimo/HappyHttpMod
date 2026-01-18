@@ -1,5 +1,6 @@
 package com.clapter.httpautomator.block;
 
+import com.clapter.httpautomator.CommonClass;
 import com.clapter.httpautomator.blockentity.HttpReceiverBlockEntity;
 import com.clapter.httpautomator.network.packet.CSyncHttpReceiverValuesPacket;
 import com.clapter.httpautomator.platform.Services;
@@ -67,6 +68,17 @@ public class HttpReceiverBlock extends Block implements EntityBlock {
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!movedByPiston && !state.is(newState.getBlock())) {
+            // Unregister HTTP handler when block is removed
+            if (!level.isClientSide) {
+                BlockEntity be = level.getBlockEntity(pos);
+                if (be instanceof HttpReceiverBlockEntity receiver) {
+                    String url = receiver.getValues().url;
+                    if (url != null && !url.isEmpty()) {
+                        CommonClass.HTTP_SERVER.unregisterHandler(url);
+                    }
+                }
+            }
+
             if (state.getValue(POWERED)) {
                 this.updateNeighbours(state, level, pos);
             }
