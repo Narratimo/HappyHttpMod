@@ -1,25 +1,28 @@
 modLoader = "javafml"
 loaderVersion = "[4,)"
 license = "All Rights Reserved"
-issueTrackerURL = "https://github.com/clapter/httpautomator/issues"
+issueTrackerURL = "https://github.com/Narratimo/HappyHttpMod/issues"
 
 [[mods]]
-modId = "httpautomator"
-version = "1.1.0"
-displayName = "HTTP Automator"
-authors = "Clapter"
+modId = "eirarelay"
+version = "${version}"
+displayName = "Eira Relay"
+authors = "Eira"
 description = '''
-HTTP automation mod for Minecraft. Connect your Minecraft world to external services.
+HTTP automation mod for Minecraft. Connect your Minecraft world to external services via HTTP webhooks.
 '''
 
-[[dependencies.httpautomator]]
+[[mixins]]
+config = "eirarelay.neoforge.mixins.json"
+
+[[dependencies.eirarelay]]
 modId = "neoforge"
 type = "required"
 versionRange = "[21.1,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.httpautomator]]
+[[dependencies.eirarelay]]
 modId = "minecraft"
 type = "required"
 versionRange = "[1.21,1.22)"

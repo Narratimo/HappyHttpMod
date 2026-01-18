@@ -1,0 +1,10 @@
+{
+  "gui.eirarelay.http_receiver_settings_screen": "HTTP Receiver Settings",
+  "gui.eirarelay.http_receiver_startbutton": "Save",
+  "gui.eirarelay.http_sender_settings_screen": "HTTP Sender Settings",
+  "gui.eirarelay.save_button": "Save",
+  "gui.eirarelay.url_label": "URL:",
+  "gui.eirarelay.method_label": "Method",
+  "block.eirarelay.receiver": "HTTP Receiver",
+  "block.eirarelay.sender": "HTTP Sender"
+}

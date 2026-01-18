@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=true": {
+      "model": "eirarelay:block/sender_lit"
+    },
+    "lit=false": {
+      "model": "eirarelay:block/sender"
+    }
+  }
+}
