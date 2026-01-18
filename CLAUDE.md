@@ -119,7 +119,6 @@ neoforge/build/libs/Eira Relay-neoforge-1.21.1-1.1.0.jar
 
 All planned UX improvements are complete. Remaining backlog (deferred indefinitely):
 - Visual connection cues
-- Authentication helpers
 - Complete Fabric module
 
 ## Completed PRs
@@ -138,3 +137,4 @@ All planned UX improvements are complete. Remaining backlog (deferred indefinite
 | 62 | feature/port-binding-helper | Port/IP info in Receiver settings | ✅ |
 | 63 | feature/inline-testing | Test button for HTTP Sender | ✅ |
 | 64 | feature/norwegian-translations | Norwegian translations | ✅ |
+| 65 | feature/auth-and-discord | Auth helpers, Discord integration, parameter editor | ✅ |
