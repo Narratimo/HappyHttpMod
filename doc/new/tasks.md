@@ -10,18 +10,17 @@ All work is done via small PRs. Each PR updates documentation.
 
 | PR# | Branch | Description | Status | Deps |
 |-----|--------|-------------|--------|------|
-| 1 | merge dev→main | HTTP Sender, global params, GUIs | ✅ Done | - |
-| 2 | merge feenixnet→main | NeoForge 1.21 docs, Discord links | ✅ Done | #1 |
-| 3 | merge docs→main | CLAUDE.md, doc/new/*.md | In Progress | #1,#2 |
-| 4 | fix/neoforge-mixin-config | Fix wrong package name | Pending | #1 |
-| 5 | fix/unused-imports | Remove WorldLoadEvent imports | Pending | #1 |
-| 6 | fix/handler-cleanup | Unregister handlers on block remove | Pending | #1 |
-| 7 | fix/localhost-default | Security: default to 127.0.0.1 | Pending | #1 |
-| 8 | feature/neoforge-events | Server lifecycle event handlers | Pending | #4 |
-| 9 | feature/neoforge-networking | IPayloadHandler implementation | Pending | #8 |
-| 10 | feature/neoforge-registry | DeferredRegister for NeoForge | Pending | #8 |
-| 11 | feature/neoforge-config | HttpServerConfig for NeoForge | Pending | #10 |
-| 12 | refactor/rename-eira-relay | Full mod rename | Pending | #11 |
+| 1 | merge dev→main | HTTP Sender (1.20.2), global params | ✅ Done | - |
+| 2 | merge feenixnet→main | NeoForge 1.21 port | ✅ Done | #1 |
+| 3 | merge docs→main | CLAUDE.md, doc/new/*.md | ✅ Done | #1,#2 |
+| 4 | fix/neoforge-mixin-config | Fix wrong package name | ✅ Done | #2 |
+| 5 | feature/neoforge-http-sender | **HTTP Sender for NeoForge 1.21.1** | ✅ Done | #4 |
+| 6 | fix/unused-imports | Remove WorldLoadEvent imports | Pending | #5 |
+| 7 | fix/handler-cleanup | Unregister handlers on block remove | Pending | #5 |
+| 8 | fix/localhost-default | Security: default to 127.0.0.1 | Pending | #5 |
+| 9 | refactor/rename-eira-relay | Full mod rename | Pending | #8 |
+
+**Note:** PRs #8-11 from original plan (NeoForge events, networking, registry, config) were already implemented by feenixnet branch.
 
 ---
 

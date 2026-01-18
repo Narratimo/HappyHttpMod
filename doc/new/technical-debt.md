@@ -19,65 +19,49 @@ while the main branch now targets MC 1.21.1 via NeoForge.
 
 ---
 
-### 2. Version Incompatibility (NEW)
+### 2. ~~Version Incompatibility~~ ✅ RESOLVED
 
-**Severity:** Critical
-**Impact:** HTTP Sender not available on NeoForge 1.21.1
+**Status:** Resolved via PR #5 (feature/neoforge-http-sender)
 
-**Problem:**
-- `dev` branch code (common/, forge/) targets **Minecraft 1.20.2** with Forge
-- `feenixnet` branch code (neoforge/) targets **Minecraft 1.21.1** with NeoForge
-- These are incompatible Minecraft versions
-
-**Current State:**
-- NeoForge module (1.21.1): HTTP Receiver only - **BUILDS AND WORKS**
-- Common/Forge modules (1.20.2): HTTP Receiver + HTTP Sender - **DISABLED**
-- settings.gradle only includes `neoforge` module
-
-**Resolution:**
-1. Port HTTP Sender from common/ to neoforge/ for MC 1.21.1
-2. Update all common/forge code to MC 1.21.1 (or maintain separate versions)
+HTTP Sender has been ported from common/ (MC 1.20.2) to neoforge/ (MC 1.21.1).
+The common/forge modules remain disabled for now as they target MC 1.20.2.
 
 ---
 
-### 3. HTTP Sender Missing on NeoForge 1.21.1
+### 3. ~~HTTP Sender Missing on NeoForge 1.21.1~~ ✅ RESOLVED
 
-**Severity:** Critical
-**Impact:** Core feature not available on current build
+**Status:** Resolved via PR #5 (feature/neoforge-http-sender)
 
-**What's missing in neoforge/ module:**
-- HttpSenderBlock.java
-- HttpSenderBlockEntity.java
-- HttpSenderSettingsScreen.java
-- HttpClientImpl.java
-- Global parameters support
-- Power modes (Toggle/Timer)
-- Related network packets
-
-**Source code exists in:** `common/src/main/java/` (for MC 1.20.2)
-
-**Resolution:** Port HTTP Sender code from common/ to neoforge/ with 1.21.1 API updates
+Ported HTTP Sender to NeoForge 1.21.1:
+- ✅ HttpSenderBlock.java
+- ✅ HttpSenderBlockEntity.java
+- ✅ HttpSenderSettingsScreen.java
+- ✅ HttpClientImpl.java / IHttpClient.java
+- ✅ EnumHttpMethod.java
+- ✅ Network packets (CHttpSenderOpenGuiPacket, SUpdateHttpSenderValuesPacket)
+- ✅ Utility classes (JsonUtils, NBTConverter, QueryBuilder)
+- ✅ Assets (blockstates, models, textures, lang)
 
 ---
 
-### 4. NeoForge Module Partially Complete
+### 4. ~~NeoForge Module Partially Complete~~ ✅ RESOLVED
 
-**Severity:** High
-**Impact:** Some features work, others need completion
+**Status:** NeoForge module now has both blocks implemented
 
-**What feenixnet added:**
+**Current state:**
 - ✅ HttpReceiverBlock for 1.21.1
 - ✅ HttpReceiverBlockEntity for 1.21.1
 - ✅ HttpReceiverSettingsScreen for 1.21.1
+- ✅ HttpSenderBlock for 1.21.1 (NEW)
+- ✅ HttpSenderBlockEntity for 1.21.1 (NEW)
+- ✅ HttpSenderSettingsScreen for 1.21.1 (NEW)
 - ✅ HTTP Server implementation
+- ✅ HTTP Client implementation (NEW)
 - ✅ Registry system (BlockRegistry, ItemRegistry, BlockEntityRegistry)
-- ✅ Network packets (CSyncHttpReceiverValuesPacket, SUpdateHttpReceiverValuesPacket)
+- ✅ All network packets
 - ✅ Config system (HttpServerConfig)
-
-**Still needs:**
-- ❌ HTTP Sender implementation (see item #3)
-- ❌ Server lifecycle event handlers (ServerStarting, ServerStarted, ServerStopping)
-- ⚠️ Mixin config package name fix (see item below)
+- ✅ Server lifecycle event handlers
+- ✅ Mixin config (fixed via PR #4)
 
 **Resolution:** Complete the missing pieces incrementally
 
