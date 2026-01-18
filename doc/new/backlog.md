@@ -391,9 +391,9 @@ Phase 5: Feature Development
 
 | PR# | Branch | Description | Status | Deps |
 |-----|--------|-------------|--------|------|
-| 1 | merge dev→main | HTTP Sender, global params | Pending | - |
-| 2 | merge feenixnet→main | NeoForge 1.21 docs | Pending | #1 |
-| 3 | merge docs→main | CLAUDE.md, doc/new/*.md | Pending | #1,#2 |
+| 1 | merge dev→main | HTTP Sender, global params | ✅ Done | - |
+| 2 | merge feenixnet→main | NeoForge 1.21 docs | ✅ Done | #1 |
+| 3 | merge docs→main | CLAUDE.md, doc/new/*.md | In Progress | #1,#2 |
 | 4 | fix/neoforge-mixin | Fix package name | Pending | #1 |
 | 5 | fix/unused-imports | Remove WorldLoadEvent | Pending | #1 |
 | 6 | fix/handler-cleanup | Memory leak fix | Pending | #1 |

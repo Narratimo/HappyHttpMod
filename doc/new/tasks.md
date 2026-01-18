@@ -10,9 +10,9 @@ All work is done via small PRs. Each PR updates documentation.
 
 | PR# | Branch | Description | Status | Deps |
 |-----|--------|-------------|--------|------|
-| 1 | merge dev→main | HTTP Sender, global params, GUIs | Pending | - |
-| 2 | merge feenixnet→main | NeoForge 1.21 docs, Discord links | Pending | #1 |
-| 3 | merge docs→main | CLAUDE.md, doc/new/*.md | Pending | #1,#2 |
+| 1 | merge dev→main | HTTP Sender, global params, GUIs | ✅ Done | - |
+| 2 | merge feenixnet→main | NeoForge 1.21 docs, Discord links | ✅ Done | #1 |
+| 3 | merge docs→main | CLAUDE.md, doc/new/*.md | In Progress | #1,#2 |
 | 4 | fix/neoforge-mixin-config | Fix wrong package name | Pending | #1 |
 | 5 | fix/unused-imports | Remove WorldLoadEvent imports | Pending | #1 |
 | 6 | fix/handler-cleanup | Unregister handlers on block remove | Pending | #1 |
