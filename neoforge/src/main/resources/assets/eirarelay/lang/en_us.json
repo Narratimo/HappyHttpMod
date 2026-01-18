@@ -5,6 +5,12 @@
   "gui.eirarelay.save_button": "Save",
   "gui.eirarelay.url_label": "URL:",
   "gui.eirarelay.method_label": "Method",
+  "gui.eirarelay.power_mode_label": "Power Mode:",
+  "gui.eirarelay.timer_label": "Timer:",
+  "gui.eirarelay.powered_type_switch": "Switch",
+  "gui.eirarelay.powered_type_timer": "Timer",
+  "gui.eirarelay.timer_unit_ticks": "Ticks",
+  "gui.eirarelay.timer_unit_seconds": "Seconds",
   "block.eirarelay.receiver": "HTTP Receiver",
   "block.eirarelay.sender": "HTTP Sender"
 }

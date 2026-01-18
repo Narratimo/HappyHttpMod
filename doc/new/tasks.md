@@ -16,6 +16,7 @@ All critical work has been completed via PRs.
 | 6 | fix/handler-cleanup-on-remove | Fix memory leak (handler cleanup) | ✅ Complete |
 | 7 | fix/default-localhost-binding | Security: bind to localhost | ✅ Complete |
 | 8 | refactor/rename-eira-relay | Full mod rename to Eira Relay | ✅ Complete |
+| 9 | feature/power-modes | **Power modes (Switch/Timer)** | 🔄 Ready for PR |
 
 ---
 
@@ -105,18 +106,25 @@ The `refactor/rename-eira-relay` branch contains all changes from PRs #4-8 and n
 
 ---
 
-## In Progress
+## Ready for Review
 
 ### PR #9: Port Power Modes from Dev Branch
 
-**Status:** In Progress
+**Status:** ✅ Ready for PR
 **Branch:** `feature/power-modes`
+**Create PR:** https://github.com/Narratimo/HappyHttpMod/pull/new/feature/power-modes
 
-**Features to port:**
-- `EnumPoweredType.java` - Toggle vs Timer modes
-- `EnumTimerUnit.java` - Ticks or seconds
-- Block entity updates for mode storage
-- GUI updates for mode selection
+**Implemented:**
+- ✅ `EnumPoweredType.java` - Toggle (SWITCH) vs Timer modes
+- ✅ `EnumTimerUnit.java` - Ticks or Seconds options
+- ✅ `HttpReceiverBlockEntity.java` - Timer tracking with tick() method
+- ✅ `HttpReceiverBlock.java` - Ticker, switchSignal(), setPowered() methods
+- ✅ `HttpReceiverSettingsScreen.java` - Power mode GUI controls
+- ✅ `en_us.json` - Translations for power mode labels
+
+**Behavior:**
+- **SWITCH mode:** Block toggles on/off on each HTTP signal (original behavior)
+- **TIMER mode:** Block powers on for configured duration (ticks or seconds)
 
 ---
 
@@ -126,7 +134,7 @@ The `refactor/rename-eira-relay` branch contains all changes from PRs #4-8 and n
 
 | Feature | Priority | Notes |
 |---------|----------|-------|
-| ~~Power modes (Toggle/Timer)~~ | **In Progress** | PR #9 |
+| ~~Power modes (Toggle/Timer)~~ | ✅ **Ready for PR** | PR #9 |
 | Global variables | Medium | Port from dev branch |
 | Port binding helper | Low | Tier 1 feature |
 | Visual connection cues | Low | Tier 1 feature |

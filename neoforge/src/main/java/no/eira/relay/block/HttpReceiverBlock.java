@@ -16,6 +16,8 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -63,6 +65,28 @@ public class HttpReceiverBlock extends Block implements EntityBlock {
         level.setBlock(pos, state, 3);
         this.updateNeighbours(state, level, pos);
         return state;
+    }
+
+    public void switchSignal(BlockState state, Level level, BlockPos pos) {
+        BlockState newState = this.switchPowered(state, level, pos);
+        float pitch = newState.getValue(POWERED) ? 0.6F : 0.5F;
+        level.playSound(null, pos, SoundEvents.LEVER_CLICK, SoundSource.BLOCKS, 0.3F, pitch);
+    }
+
+    public void setPowered(BlockState state, Level level, BlockPos pos, boolean powered) {
+        state = state.setValue(POWERED, powered);
+        level.setBlock(pos, state, 3);
+        this.updateNeighbours(state, level, pos);
+    }
+
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        return level.isClientSide ? null : (level1, pos, state1, blockEntity) -> {
+            if (blockEntity instanceof HttpReceiverBlockEntity receiver) {
+                receiver.tick();
+            }
+        };
     }
 
     @Override
