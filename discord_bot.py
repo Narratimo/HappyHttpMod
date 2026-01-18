@@ -17,9 +17,12 @@ MINECRAFT_BASE_URL = "http://localhost:8080"  # Base URL for Minecraft HTTP Rece
 # Minecraft should return JSON with {"state": "on"} or {"state": "off"}
 #
 # For non-toggles: use reaction_success and message_success
+#
+# Security: Add "token" field to authenticate with Minecraft HTTP Receiver
 COMMANDS = {
     "!eira": {
         "endpoint": "/discord",           # Minecraft endpoint to call
+        "token": "",                       # Secret token (leave empty if none)
         "reaction_success": "✅",          # Reaction on success (or None)
         "reaction_fail": "❌",             # Reaction on failure (or None)
         "message_success": None,           # Message to send on success (or None)
@@ -28,6 +31,7 @@ COMMANDS = {
     },
     "!lights": {
         "endpoint": "/lights",
+        "token": "",                       # Secret token (leave empty if none)
         "is_toggle": True,                 # Enable on/off mode
         "reaction_on": "💡",               # Reaction when turned ON
         "reaction_off": "🌑",              # Reaction when turned OFF
@@ -39,6 +43,7 @@ COMMANDS = {
     },
     "!door": {
         "endpoint": "/door",
+        "token": "",                       # Secret token (leave empty if none)
         "is_toggle": True,
         "reaction_on": "🚪",               # Door open
         "reaction_off": "🔒",              # Door closed/locked
@@ -50,6 +55,7 @@ COMMANDS = {
     },
     "!alarm": {
         "endpoint": "/alarm",
+        "token": "",                       # Secret token (leave empty if none)
         "is_toggle": True,
         "reaction_on": "🚨",               # Alarm active
         "reaction_off": "🔕",              # Alarm off
@@ -71,7 +77,8 @@ async def on_ready():
     print(f"Bot is online as {client.user}")
     print(f"\nRegistered commands:")
     for cmd, config in COMMANDS.items():
-        print(f"  {cmd} -> {config['endpoint']} ({config['description']})")
+        token_status = "🔒" if config.get("token") else "🔓"
+        print(f"  {token_status} {cmd} -> {config['endpoint']} ({config['description']})")
     print()
 
 @client.event
@@ -124,6 +131,12 @@ async def handle_command(message, trigger, config):
     """Handle a matched command"""
     url = MINECRAFT_BASE_URL + config["endpoint"]
 
+    # Build headers with optional auth token
+    headers = {"Content-Type": "application/json"}
+    token = config.get("token", "")
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
     try:
         # Send POST request to Minecraft HTTP Receiver
         response = requests.post(
@@ -133,11 +146,16 @@ async def handle_command(message, trigger, config):
                 "author": str(message.author),
                 "command": trigger
             },
-            headers={"Content-Type": "application/json"},
+            headers=headers,
             timeout=5
         )
 
-        if response.status_code == 200:
+        if response.status_code == 401:
+            # Unauthorized - invalid or missing token
+            await message.add_reaction("🔐")
+            await message.channel.send("Unauthorized: Invalid token")
+            print(f"[{trigger}] Unauthorized - check token configuration")
+        elif response.status_code == 200:
             # Check if this is a toggle command
             if config.get("is_toggle"):
                 await handle_toggle_response(message, trigger, config, response)
