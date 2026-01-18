@@ -10,45 +10,76 @@ This document identifies technical debt in the codebase and provides a migration
 
 ## Critical Debt
 
-### 1. Unmerged `dev` Branch
+### 1. ~~Unmerged `dev` Branch~~ ✅ RESOLVED
 
-**Severity:** Critical
-**Impact:** Main branch missing core features
+**Status:** Resolved via PR #1 (merge/dev-to-main)
 
-The `dev` branch contains significant feature work that hasn't been merged:
-- HTTP Sender Block (complete)
-- Global parameters
-- HTTP client implementation
-- Enhanced GUIs
-- Power modes
-- 60+ file changes
-
-**Resolution:** Merge `dev` to `main` immediately
+The dev branch has been merged. However, note that the dev code targets MC 1.20.2,
+while the main branch now targets MC 1.21.1 via NeoForge.
 
 ---
 
-### 2. NeoForge Module Incomplete
+### 2. Version Incompatibility (NEW)
 
 **Severity:** Critical
-**Impact:** NeoForge users cannot use the mod
+**Impact:** HTTP Sender not available on NeoForge 1.21.1
 
-**Current State (`neoforge/src/main/java/.../ExampleMod.java`):**
-```java
-@Mod(Constants.MOD_ID)
-public class ExampleMod {
-    public ExampleMod() {
-        CommonClass.init();
-    }
-}
-```
+**Problem:**
+- `dev` branch code (common/, forge/) targets **Minecraft 1.20.2** with Forge
+- `feenixnet` branch code (neoforge/) targets **Minecraft 1.21.1** with NeoForge
+- These are incompatible Minecraft versions
 
-**Missing:**
-- No server lifecycle events (ServerStartingEvent, ServerStartedEvent, ServerStoppingEvent)
-- No network packet registration
-- No HTTP server integration
-- No configuration loading
+**Current State:**
+- NeoForge module (1.21.1): HTTP Receiver only - **BUILDS AND WORKS**
+- Common/Forge modules (1.20.2): HTTP Receiver + HTTP Sender - **DISABLED**
+- settings.gradle only includes `neoforge` module
 
-**Resolution:** Port Forge implementation to NeoForge API
+**Resolution:**
+1. Port HTTP Sender from common/ to neoforge/ for MC 1.21.1
+2. Update all common/forge code to MC 1.21.1 (or maintain separate versions)
+
+---
+
+### 3. HTTP Sender Missing on NeoForge 1.21.1
+
+**Severity:** Critical
+**Impact:** Core feature not available on current build
+
+**What's missing in neoforge/ module:**
+- HttpSenderBlock.java
+- HttpSenderBlockEntity.java
+- HttpSenderSettingsScreen.java
+- HttpClientImpl.java
+- Global parameters support
+- Power modes (Toggle/Timer)
+- Related network packets
+
+**Source code exists in:** `common/src/main/java/` (for MC 1.20.2)
+
+**Resolution:** Port HTTP Sender code from common/ to neoforge/ with 1.21.1 API updates
+
+---
+
+### 4. NeoForge Module Partially Complete
+
+**Severity:** High
+**Impact:** Some features work, others need completion
+
+**What feenixnet added:**
+- ✅ HttpReceiverBlock for 1.21.1
+- ✅ HttpReceiverBlockEntity for 1.21.1
+- ✅ HttpReceiverSettingsScreen for 1.21.1
+- ✅ HTTP Server implementation
+- ✅ Registry system (BlockRegistry, ItemRegistry, BlockEntityRegistry)
+- ✅ Network packets (CSyncHttpReceiverValuesPacket, SUpdateHttpReceiverValuesPacket)
+- ✅ Config system (HttpServerConfig)
+
+**Still needs:**
+- ❌ HTTP Sender implementation (see item #3)
+- ❌ Server lifecycle event handlers (ServerStarting, ServerStarted, ServerStopping)
+- ⚠️ Mixin config package name fix (see item below)
+
+**Resolution:** Complete the missing pieces incrementally
 
 ---
 
