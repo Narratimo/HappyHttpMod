@@ -25,23 +25,25 @@ public class HttpReceiverBlockHandler implements IHttpHandler {
     private List<BlockPos> blockPositions;
     private ServerLevel serverLevel;
     private String url;
+    private String secretToken;
     private static final String ALLOWED_METHOD = "POST";
 
-    public HttpReceiverBlockHandler(HttpReceiverBlockEntity entity, String url){
+    public HttpReceiverBlockHandler(HttpReceiverBlockEntity entity, String url, String secretToken){
         this.blockPositions = new ArrayList<>();
         this.blockPositions.add(entity.getBlockPos());
         this.serverLevel = (ServerLevel) entity.getLevel();
         this.url = url;
+        this.secretToken = secretToken;
     }
 
-    public static void create(HttpReceiverBlockEntity entity, String url){
+    public static void create(HttpReceiverBlockEntity entity, String url, String secretToken){
         // Ensure URL starts with /
         String normalizedUrl = url.startsWith("/") ? url : "/" + url;
-        
+
         IHttpHandler handler = CommonClass.HTTP_SERVER.getHandlerByUrl(normalizedUrl);
         if(handler != null) {
             if (handler instanceof HttpReceiverBlockHandler receiverHandler) {
-                // Add to existing handler
+                // Add to existing handler (uses token from first block)
                 receiverHandler.addBlockPosition(entity.getBlockPos(), (ServerLevel) entity.getLevel());
                 System.out.println("[HttpAutomator] Added block at " + entity.getBlockPos() + " to existing handler for: " + normalizedUrl);
                 return;
@@ -50,7 +52,7 @@ public class HttpReceiverBlockHandler implements IHttpHandler {
             System.out.println("[HttpAutomator] ERROR: URL " + normalizedUrl + " already registered with different handler type");
             return;
         }
-        HttpReceiverBlockHandler newHandler = new HttpReceiverBlockHandler(entity, normalizedUrl);
+        HttpReceiverBlockHandler newHandler = new HttpReceiverBlockHandler(entity, normalizedUrl, secretToken);
         CommonClass.HTTP_SERVER.registerHandler(newHandler);
         System.out.println("[HttpAutomator] Registered NEW handler for endpoint: " + normalizedUrl + " at block " + entity.getBlockPos());
     }
@@ -80,7 +82,12 @@ public class HttpReceiverBlockHandler implements IHttpHandler {
         System.out.println("[EiraRelay] Received " + exchange.getRequestMethod() + " request to " + exchange.getRequestURI());
 
         try {
-            // Check global parameters first
+            // Check secret token first
+            if (!validateToken(exchange)) {
+                return; // Response already sent
+            }
+
+            // Check global parameters
             List<GlobalParam> globalParams = Services.HTTP_CONFIG.getGlobalParams();
             if (!globalParams.isEmpty()) {
                 if (!checkGlobalParams(exchange, globalParams)) {
@@ -187,5 +194,36 @@ public class HttpReceiverBlockHandler implements IHttpHandler {
             }
         }
         return true;
+    }
+
+    private boolean validateToken(HttpExchange exchange) throws IOException {
+        // No token required if not configured
+        if (secretToken == null || secretToken.isEmpty()) {
+            return true;
+        }
+
+        // Check Authorization header first (Bearer token)
+        String authHeader = exchange.getRequestHeaders().getFirst("Authorization");
+        if (authHeader != null && authHeader.equals("Bearer " + secretToken)) {
+            return true;
+        }
+
+        // Check query parameter as fallback
+        Map<String, String> params = ParameterReader.getAllParameters(exchange);
+        String paramToken = params.get("token");
+        if (paramToken != null && paramToken.equals(secretToken)) {
+            return true;
+        }
+
+        // Unauthorized - send 401 response
+        String error = "{\"error\": \"Unauthorized\"}";
+        byte[] errorBytes = error.getBytes(StandardCharsets.UTF_8);
+        exchange.getResponseHeaders().set("Content-Type", "application/json");
+        exchange.sendResponseHeaders(401, errorBytes.length);
+        try (OutputStream os = exchange.getResponseBody()) {
+            os.write(errorBytes);
+        }
+        System.out.println("[EiraRelay] Unauthorized request - invalid or missing token");
+        return false;
     }
 }

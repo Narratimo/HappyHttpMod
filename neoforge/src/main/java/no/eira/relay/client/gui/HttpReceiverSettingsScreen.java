@@ -25,6 +25,7 @@ public class HttpReceiverSettingsScreen extends Screen {
     private static Component TIMER_LABEL = Component.translatable("gui."+ Constants.MOD_ID + ".timer_label");
     private static Component PORT_LABEL = Component.translatable("gui."+ Constants.MOD_ID + ".port_label");
     private static Component IP_LABEL = Component.translatable("gui."+ Constants.MOD_ID + ".ip_label");
+    private static Component TOKEN_LABEL = Component.translatable("gui."+ Constants.MOD_ID + ".token_label");
 
     private final int screenWidth;
     private final int screenHeight;
@@ -37,17 +38,19 @@ public class HttpReceiverSettingsScreen extends Screen {
     private Button powerModeButton;
     private EditBox timerInput;
     private Button timerUnitButton;
+    private EditBox secretTokenInput;
 
     private String endpointText;
     private EnumPoweredType poweredType;
     private float timerValue;
     private EnumTimerUnit timerUnit;
+    private String secretTokenValue;
 
 
     public HttpReceiverSettingsScreen(HttpReceiverBlockEntity blockEntity) {
         super(TITLE);
         screenWidth = 176;
-        screenHeight = 166;
+        screenHeight = 190;
         this.blockEntity = blockEntity;
 
         // Initialize from block entity values
@@ -55,6 +58,7 @@ public class HttpReceiverSettingsScreen extends Screen {
         this.poweredType = values.poweredType;
         this.timerValue = values.timer;
         this.timerUnit = values.timerUnit;
+        this.secretTokenValue = values.secretToken;
     }
 
     @Override
@@ -97,10 +101,18 @@ public class HttpReceiverSettingsScreen extends Screen {
                 .build()
         );
 
+        // Secret token input
+        this.secretTokenInput = new EditBox(font, leftPos + 45, topPos + 58, 153, 20, Component.empty());
+        this.secretTokenInput.setResponder(text -> {
+            secretTokenValue = text;
+        });
+        secretTokenInput.insertText(blockEntity.getValues().secretToken);
+        addRenderableWidget(secretTokenInput);
+
         // Save button
         this.saveButton = addRenderableWidget(Button.builder(
                 SAVE_TEXT, this::handleSaveButton)
-                .bounds(leftPos, topPos + 58, 50, 20)
+                .bounds(leftPos, topPos + 84, 50, 20)
                 .build()
         );
 
@@ -140,6 +152,7 @@ public class HttpReceiverSettingsScreen extends Screen {
             values.poweredType = this.poweredType;
             values.timer = this.timerValue;
             values.timerUnit = this.timerUnit;
+            values.secretToken = this.secretTokenValue != null ? this.secretTokenValue : "";
             PacketDistributor.sendToServer(new SUpdateHttpReceiverValuesPacket(
                     this.blockEntity.getBlockPos(),
                     values));
@@ -157,11 +170,14 @@ public class HttpReceiverSettingsScreen extends Screen {
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
+        // Draw token label
+        guiGraphics.drawString(font, TOKEN_LABEL, leftPos, topPos + 64, 0xFFFFFF);
+
         // Display port and IP info below save button
         int port = Services.HTTP_CONFIG.getPort();
         String localIp = getLocalIpAddress();
 
-        int infoY = topPos + 85;
+        int infoY = topPos + 111;
         guiGraphics.drawString(font, PORT_LABEL.getString() + ": " + port, leftPos, infoY, 0xAAAAAA);
         guiGraphics.drawString(font, IP_LABEL.getString() + ": " + localIp, leftPos, infoY + 12, 0xAAAAAA);
     }
