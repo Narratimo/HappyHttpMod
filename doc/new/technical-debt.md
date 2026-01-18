@@ -316,12 +316,20 @@ Create `neoforge/.../platform/config/HttpServerConfig.java`:
 
 ---
 
-## Debt Reduction Priority
+## Debt Reduction Priority (PR-Based)
 
-1. **Merge dev branch** (Critical, blocks features)
-2. **Fix NeoForge mixin config** (Critical, trivial fix)
-3. **Complete NeoForge implementation** (Critical, enables platform)
-4. **Fix memory leak** (High, prevents resource issues)
-5. **Clean unused imports** (Medium, easy wins)
-6. **Default to localhost** (Medium, security)
-7. **Add unit tests** (Low, long-term value)
+| Priority | Debt Item | PR# | Branch | Status |
+|----------|-----------|-----|--------|--------|
+| 1 | Merge dev branch | #1 | merge dev→main | Pending |
+| 2 | Merge feenixnet | #2 | merge feenixnet→main | Pending |
+| 3 | Fix NeoForge mixin | #4 | fix/neoforge-mixin | Pending |
+| 4 | Clean unused imports | #5 | fix/unused-imports | Pending |
+| 5 | Fix memory leak | #6 | fix/handler-cleanup | Pending |
+| 6 | Default to localhost | #7 | fix/localhost-default | Pending |
+| 7 | NeoForge events | #8 | feature/neoforge-events | Pending |
+| 8 | NeoForge networking | #9 | feature/neoforge-network | Pending |
+| 9 | NeoForge registry | #10 | feature/neoforge-registry | Pending |
+| 10 | NeoForge config | #11 | feature/neoforge-config | Pending |
+| 11 | Rename to Eira Relay | #12 | refactor/rename-eira | Pending |
+
+See `doc/new/tasks.md` and `doc/new/backlog.md` for full PR details.

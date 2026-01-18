@@ -2,6 +2,29 @@
 
 > **Rebranding:** The mod is being renamed from "Happy HTTP" / "HttpAutomator" to "Eira Relay" (www.eira.no)
 
+---
+
+## PR Execution Plan
+
+All work is done via small PRs. Each PR updates documentation.
+
+| PR# | Branch | Description | Status | Deps |
+|-----|--------|-------------|--------|------|
+| 1 | merge dev→main | HTTP Sender, global params, GUIs | Pending | - |
+| 2 | merge feenixnet→main | NeoForge 1.21 docs, Discord links | Pending | #1 |
+| 3 | merge docs→main | CLAUDE.md, doc/new/*.md | Pending | #1,#2 |
+| 4 | fix/neoforge-mixin-config | Fix wrong package name | Pending | #1 |
+| 5 | fix/unused-imports | Remove WorldLoadEvent imports | Pending | #1 |
+| 6 | fix/handler-cleanup | Unregister handlers on block remove | Pending | #1 |
+| 7 | fix/localhost-default | Security: default to 127.0.0.1 | Pending | #1 |
+| 8 | feature/neoforge-events | Server lifecycle event handlers | Pending | #4 |
+| 9 | feature/neoforge-networking | IPayloadHandler implementation | Pending | #8 |
+| 10 | feature/neoforge-registry | DeferredRegister for NeoForge | Pending | #8 |
+| 11 | feature/neoforge-config | HttpServerConfig for NeoForge | Pending | #10 |
+| 12 | refactor/rename-eira-relay | Full mod rename | Pending | #11 |
+
+---
+
 ## Critical Priority
 
 ### 0. Rename Mod to "Eira Relay"
@@ -216,22 +239,32 @@ common/src/main/java/.../utils/QueryBuilder.java
 ## Task Dependencies
 
 ```
-Merge dev → Fix imports → Add handler cleanup → NeoForge completion
-                                              ↘
-                                                Fabric completion
+Phase 1: Branch Merges
+PR#1 (dev) → PR#2 (feenixnet) → PR#3 (docs)
+
+Phase 2: Quick Fixes (parallel after PR#1)
+PR#1 → PR#4 (mixin) ─┬→ PR#8 (events) → PR#9 (network) → PR#10 (registry) → PR#11 (config)
+PR#1 → PR#5 (imports)│
+PR#1 → PR#6 (cleanup)│
+PR#1 → PR#7 (security)┘
+
+Phase 3: Rename (after NeoForge complete)
+PR#11 → PR#12 (Eira Relay rename)
 ```
 
-## Estimated Effort
+## Estimated Effort by PR
 
-| Task | Complexity | Files |
-|------|------------|-------|
-| Merge dev | Medium | ~60 files |
-| Fix mixin config | Trivial | 1 file |
-| NeoForge completion | High | ~10 files |
-| Unused imports | Trivial | 2 files |
-| Handler cleanup | Low | 2 files |
-| Localhost default | Low | 1 file |
-| Method enforcement | Low | 1 file |
-| Unit tests | High | New files |
-| Config docs | Low | Documentation |
-| Fabric completion | High | ~10 files |
+| PR# | Description | Effort | Files |
+|-----|-------------|--------|-------|
+| 1 | Merge dev | Medium | ~108 files |
+| 2 | Merge feenixnet | Medium | ~76 files |
+| 3 | Merge docs | Low | ~8 files |
+| 4 | Fix mixin config | Trivial | 1 file |
+| 5 | Clean imports | Trivial | 2 files |
+| 6 | Handler cleanup | Low | 2 files |
+| 7 | Localhost default | Low | 1 file |
+| 8 | NeoForge events | Medium | 1 file |
+| 9 | NeoForge networking | High | 1+ files |
+| 10 | NeoForge registry | Medium | 3 files |
+| 11 | NeoForge config | Low | 1 file |
+| 12 | Eira Relay rename | High | 50+ files |

@@ -358,50 +358,57 @@ See `doc/new/tasks.md` for detailed subtasks.
 ## Implementation Order
 
 ```
-Phase 0: Rebranding
-└── Rename to Eira Relay (all code, assets, docs)
+Phase 1: Branch Merges (PRs #1-3)
+├── PR#1: Merge dev branch (HTTP Sender, params, GUIs)
+├── PR#2: Merge feenixnet branch (NeoForge 1.21 docs)
+└── PR#3: Merge docs branch (CLAUDE.md, analysis)
 
-Phase 1: Foundation
-├── Merge dev branch
-├── Fix NeoForge mixin
-└── Complete NeoForge events
+Phase 2: Quick Fixes (PRs #4-7, parallel)
+├── PR#4: Fix NeoForge mixin config
+├── PR#5: Clean unused imports
+├── PR#6: Handler cleanup on block remove
+└── PR#7: Default to localhost binding
 
-Phase 2: Tier 1
+Phase 3: NeoForge Implementation (PRs #8-11)
+├── PR#8: NeoForge event handlers
+├── PR#9: NeoForge networking
+├── PR#10: NeoForge registry
+└── PR#11: NeoForge config
+
+Phase 4: Rename (PR #12)
+└── PR#12: Rename to Eira Relay
+
+Phase 5: Feature Development
 ├── #37 Port binding helper
 ├── #26 Visual connection cues
 ├── #27 Inline testing
-└── #31 Authentication
-
-Phase 3: Tier 2
-├── #25 Presets
-├── #28 Output modes
-├── #32 Rate limiting
-├── #33 Status indicators
-└── #36 Toolkit
-
-Phase 4: Platform
-├── Forge 1.21.x
-├── Fabric completion
-└── Multi-version
-
-Phase 5: Tier 3
-├── #34 Payload mapping
-├── #35 Sender outcomes
-├── #30 Scene Sequencer
-└── #29 HTTP Filter
+└── ... (Tier 1, 2, 3 features)
 ```
 
 ---
 
-## Tracking
+## PR Tracking
 
-| Item | Status | PR | Notes |
-|------|--------|-----|-------|
-| **Rename to Eira Relay** | Pending | - | Release blocker |
-| Merge dev | Pending | - | Critical path |
-| NeoForge mixin fix | Pending | - | Trivial |
-| NeoForge events | Pending | - | Blocking |
-| #37 Port helper | Backlog | - | Tier 1 |
-| #26 Visual cues | Backlog | - | Tier 1 |
-| #27 Testing | Backlog | - | Tier 1 |
-| #31 Auth | Backlog | - | Tier 1 |
+| PR# | Branch | Description | Status | Deps |
+|-----|--------|-------------|--------|------|
+| 1 | merge dev→main | HTTP Sender, global params | Pending | - |
+| 2 | merge feenixnet→main | NeoForge 1.21 docs | Pending | #1 |
+| 3 | merge docs→main | CLAUDE.md, doc/new/*.md | Pending | #1,#2 |
+| 4 | fix/neoforge-mixin | Fix package name | Pending | #1 |
+| 5 | fix/unused-imports | Remove WorldLoadEvent | Pending | #1 |
+| 6 | fix/handler-cleanup | Memory leak fix | Pending | #1 |
+| 7 | fix/localhost-default | Security fix | Pending | #1 |
+| 8 | feature/neoforge-events | Lifecycle handlers | Pending | #4 |
+| 9 | feature/neoforge-network | Packet handling | Pending | #8 |
+| 10 | feature/neoforge-registry | Block registration | Pending | #8 |
+| 11 | feature/neoforge-config | Server config | Pending | #10 |
+| 12 | refactor/rename-eira | Full rename | Pending | #11 |
+
+## Feature Backlog
+
+| Item | Status | Notes |
+|------|--------|-------|
+| #37 Port helper | Backlog | Tier 1 |
+| #26 Visual cues | Backlog | Tier 1 |
+| #27 Testing | Backlog | Tier 1 |
+| #31 Auth | Backlog | Tier 1 |
