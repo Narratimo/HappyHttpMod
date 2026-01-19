@@ -23,6 +23,18 @@ public class HttpServerConfig implements IHttpServerConfig {
 
     private final ForgeConfigSpec.IntValue port;
 
+    // Rate limiting
+    private final ForgeConfigSpec.BooleanValue rateLimitEnabled;
+    private final ForgeConfigSpec.IntValue rateLimitPerMinute;
+
+    // Authentication
+    private final ForgeConfigSpec.BooleanValue requireAuth;
+    private final ForgeConfigSpec.ConfigValue<List<? extends String>> apiKeys;
+
+    // CORS
+    private final ForgeConfigSpec.BooleanValue corsEnabled;
+    private final ForgeConfigSpec.ConfigValue<List<? extends String>> corsOrigins;
+
     static {
         Pair<HttpServerConfig, ForgeConfigSpec> pair = new ForgeConfigSpec.Builder()
                 .configure(HttpServerConfig::new);
@@ -37,6 +49,33 @@ public class HttpServerConfig implements IHttpServerConfig {
                 .comment("Http Server Port")
                 .defineInRange("port", 8080, 0, 65535);
         builder.pop();
+
+        builder.push("Rate Limiting");
+        rateLimitEnabled = builder
+                .comment("Enable rate limiting for HTTP requests")
+                .define("enabled", false);
+        rateLimitPerMinute = builder
+                .comment("Maximum requests per minute per IP address")
+                .defineInRange("requestsPerMinute", 100, 1, 10000);
+        builder.pop();
+
+        builder.push("Authentication");
+        requireAuth = builder
+                .comment("Require API key authentication for all requests")
+                .define("requireAuth", false);
+        apiKeys = builder
+                .comment("List of valid API keys")
+                .defineList("apiKeys", List.of(), obj -> obj instanceof String);
+        builder.pop();
+
+        builder.push("CORS");
+        corsEnabled = builder
+                .comment("Enable CORS headers for cross-origin requests")
+                .define("enabled", false);
+        corsOrigins = builder
+                .comment("Allowed origins for CORS (use * for all)")
+                .defineList("origins", List.of("*"), obj -> obj instanceof String);
+        builder.pop();
     }
 
     /**
@@ -45,6 +84,12 @@ public class HttpServerConfig implements IHttpServerConfig {
      */
     public HttpServerConfig() {
         this.port = INSTANCE.port;
+        this.rateLimitEnabled = INSTANCE.rateLimitEnabled;
+        this.rateLimitPerMinute = INSTANCE.rateLimitPerMinute;
+        this.requireAuth = INSTANCE.requireAuth;
+        this.apiKeys = INSTANCE.apiKeys;
+        this.corsEnabled = INSTANCE.corsEnabled;
+        this.corsOrigins = INSTANCE.corsOrigins;
     }
 
     public static void loadGlobalParamsConfig() {
@@ -145,5 +190,37 @@ public class HttpServerConfig implements IHttpServerConfig {
     @Override
     public String getGlobalRedirect() {
         return globalRedirect;
+    }
+
+    @Override
+    public boolean isRateLimitEnabled() {
+        return rateLimitEnabled.get();
+    }
+
+    @Override
+    public int getRateLimitPerMinute() {
+        return rateLimitPerMinute.get();
+    }
+
+    @Override
+    public boolean requireAuth() {
+        return requireAuth.get();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<String> getApiKeys() {
+        return (List<String>) apiKeys.get();
+    }
+
+    @Override
+    public boolean isCorsEnabled() {
+        return corsEnabled.get();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<String> getCorsOrigins() {
+        return (List<String>) corsOrigins.get();
     }
 }
