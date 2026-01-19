@@ -8,6 +8,7 @@ import no.eira.relay.enums.EnumPoweredType;
 import no.eira.relay.enums.EnumTimerUnit;
 import no.eira.relay.network.packet.SUpdateHttpSenderValuesPacket;
 import no.eira.relay.utils.JsonUtils;
+import no.eira.relay.variables.ResponseCapture;
 import net.minecraft.client.gui.GuiGraphics;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.minecraft.client.gui.components.Button;
@@ -21,8 +22,10 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -41,6 +44,10 @@ public class HttpSenderSettingsScreen extends Screen {
     private static final Component COPY_TEXT = Component.literal("\u2398");
     private static final Component SHOW_TEXT = Component.literal("\u25C9");
     private static final Component HIDE_TEXT = Component.literal("\u25CE");
+    private static final Component CAPTURE_LABEL = Component.translatable("gui." + Constants.MOD_ID + ".capture_label");
+    private static final Component CAPTURE_ON = Component.translatable("gui." + Constants.MOD_ID + ".capture_on");
+    private static final Component CAPTURE_OFF = Component.translatable("gui." + Constants.MOD_ID + ".capture_off");
+    private static final Component REMOVE_TEXT = Component.literal("\u2715");
 
     private final int screenWidth;
     private final int screenHeight;
@@ -69,6 +76,16 @@ public class HttpSenderSettingsScreen extends Screen {
     private Button customHeaderCopyButton;
     private boolean authValueVisible = false;
 
+    // Response capture UI elements
+    private Button captureToggleButton;
+    private EditBox captureVarNameInput;
+    private EditBox captureJsonPathInput;
+    private Button captureScopeButton;
+    private Button captureAddButton;
+    private Button captureRemoveButton;
+    private Button capturePrevButton;
+    private Button captureNextButton;
+
     private String urlText;
     private String testResult = "";
     private int testResultColor = 0xAAAAAA;
@@ -84,10 +101,15 @@ public class HttpSenderSettingsScreen extends Screen {
     private String paramKey = "";
     private String paramValue = "";
 
+    // Response capture state
+    private boolean captureResponse;
+    private List<ResponseCapture> responseCaptures;
+    private int currentCaptureIndex = 0;
+
     public HttpSenderSettingsScreen(HttpSenderBlockEntity blockEntity) {
         super(TITLE);
         screenWidth = 250;
-        screenHeight = 270;
+        screenHeight = 330;
         this.blockEntity = blockEntity;
 
         // Initialize from block entity values
@@ -102,6 +124,13 @@ public class HttpSenderSettingsScreen extends Screen {
         this.customHeaderName = values.customHeaderName;
         this.customHeaderValue = values.customHeaderValue;
         this.parameterMap = new HashMap<>(values.parameterMap);
+
+        // Initialize response capture values
+        this.captureResponse = values.captureResponse;
+        this.responseCaptures = new ArrayList<>();
+        for (ResponseCapture capture : values.responseCaptures) {
+            this.responseCaptures.add(capture.copy());
+        }
     }
 
     @Override
@@ -236,29 +265,89 @@ public class HttpSenderSettingsScreen extends Screen {
                 .build()
         );
 
+        // Response capture section
+        // Capture toggle button
+        this.captureToggleButton = addRenderableWidget(Button.builder(
+                captureResponse ? CAPTURE_ON : CAPTURE_OFF, this::handleCaptureToggleButton)
+                .bounds(leftPos + 10, topPos + 215, 50, 20)
+                .build()
+        );
+
+        // Variable name input
+        this.captureVarNameInput = new EditBox(font, leftPos + 65, topPos + 215, 70, 20, Component.empty());
+        this.captureVarNameInput.setMaxLength(32);
+        this.captureVarNameInput.setHint(Component.literal("varName"));
+        this.captureVarNameInput.setResponder(this::handleCaptureVarNameChange);
+        addRenderableWidget(captureVarNameInput);
+
+        // JSON path input
+        this.captureJsonPathInput = new EditBox(font, leftPos + 140, topPos + 215, 70, 20, Component.empty());
+        this.captureJsonPathInput.setMaxLength(64);
+        this.captureJsonPathInput.setHint(Component.literal("$.path"));
+        this.captureJsonPathInput.setResponder(this::handleCaptureJsonPathChange);
+        addRenderableWidget(captureJsonPathInput);
+
+        // Scope button (Global/Block)
+        this.captureScopeButton = addRenderableWidget(Button.builder(
+                Component.literal("BLK"), this::handleCaptureScopeButton)
+                .bounds(leftPos + 215, topPos + 215, 30, 20)
+                .build()
+        );
+
+        // Navigation row
+        // Previous capture button
+        this.capturePrevButton = addRenderableWidget(Button.builder(
+                Component.literal("<"), this::handleCapturePrevButton)
+                .bounds(leftPos + 10, topPos + 240, 20, 20)
+                .build()
+        );
+
+        // Add capture button
+        this.captureAddButton = addRenderableWidget(Button.builder(
+                ADD_TEXT, this::handleCaptureAddButton)
+                .bounds(leftPos + 35, topPos + 240, 25, 20)
+                .build()
+        );
+
+        // Remove capture button
+        this.captureRemoveButton = addRenderableWidget(Button.builder(
+                REMOVE_TEXT, this::handleCaptureRemoveButton)
+                .bounds(leftPos + 65, topPos + 240, 25, 20)
+                .build()
+        );
+
+        // Next capture button
+        this.captureNextButton = addRenderableWidget(Button.builder(
+                Component.literal(">"), this::handleCaptureNextButton)
+                .bounds(leftPos + 95, topPos + 240, 20, 20)
+                .build()
+        );
+
         // Save button
         this.saveButton = addRenderableWidget(Button.builder(
                 SAVE_TEXT, this::handleSaveButton)
-                .bounds(leftPos + 10, topPos + 235, 70, 20)
+                .bounds(leftPos + 10, topPos + 295, 70, 20)
                 .build()
         );
 
         // Test button
         this.testButton = addRenderableWidget(Button.builder(
                 TEST_TEXT, this::handleTestButton)
-                .bounds(leftPos + 85, topPos + 235, 70, 20)
+                .bounds(leftPos + 85, topPos + 295, 70, 20)
                 .build()
         );
 
         // Discord preset button
         this.discordButton = addRenderableWidget(Button.builder(
                 DISCORD_TEXT, this::handleDiscordButton)
-                .bounds(leftPos + 160, topPos + 235, 80, 20)
+                .bounds(leftPos + 160, topPos + 295, 80, 20)
                 .build()
         );
 
         updateTimerVisibility();
         updateAuthVisibility();
+        updateCaptureVisibility();
+        loadCurrentCaptureToUI();
     }
 
     private void updateTimerVisibility() {
@@ -392,6 +481,121 @@ public class HttpSenderSettingsScreen extends Screen {
         testResultColor = 0xFFFF55;
     }
 
+    // Response capture handlers
+    private void handleCaptureToggleButton(Button button) {
+        captureResponse = !captureResponse;
+        button.setMessage(captureResponse ? CAPTURE_ON : CAPTURE_OFF);
+        updateCaptureVisibility();
+    }
+
+    private void handleCaptureVarNameChange(String text) {
+        if (!responseCaptures.isEmpty() && currentCaptureIndex < responseCaptures.size()) {
+            responseCaptures.get(currentCaptureIndex).setVariableName(text);
+        }
+    }
+
+    private void handleCaptureJsonPathChange(String text) {
+        if (!responseCaptures.isEmpty() && currentCaptureIndex < responseCaptures.size()) {
+            responseCaptures.get(currentCaptureIndex).setJsonPath(text);
+        }
+    }
+
+    private void handleCaptureScopeButton(Button button) {
+        if (responseCaptures.isEmpty() || currentCaptureIndex >= responseCaptures.size()) {
+            return;
+        }
+        ResponseCapture capture = responseCaptures.get(currentCaptureIndex);
+        ResponseCapture.VariableScope[] scopes = ResponseCapture.VariableScope.values();
+        int nextIndex = (capture.getScope().ordinal() + 1) % scopes.length;
+        // Skip PLAYER scope for now (not fully implemented)
+        if (scopes[nextIndex] == ResponseCapture.VariableScope.PLAYER) {
+            nextIndex = (nextIndex + 1) % scopes.length;
+        }
+        capture.setScope(scopes[nextIndex]);
+        updateScopeButtonText();
+    }
+
+    private void handleCaptureAddButton(Button button) {
+        ResponseCapture newCapture = new ResponseCapture();
+        responseCaptures.add(newCapture);
+        currentCaptureIndex = responseCaptures.size() - 1;
+        loadCurrentCaptureToUI();
+        testResult = "Added capture #" + (currentCaptureIndex + 1);
+        testResultColor = 0x55FF55;
+    }
+
+    private void handleCaptureRemoveButton(Button button) {
+        if (!responseCaptures.isEmpty() && currentCaptureIndex < responseCaptures.size()) {
+            responseCaptures.remove(currentCaptureIndex);
+            if (currentCaptureIndex >= responseCaptures.size() && currentCaptureIndex > 0) {
+                currentCaptureIndex--;
+            }
+            loadCurrentCaptureToUI();
+            testResult = "Removed capture. " + responseCaptures.size() + " remaining.";
+            testResultColor = 0xFFFF55;
+        }
+    }
+
+    private void handleCapturePrevButton(Button button) {
+        if (currentCaptureIndex > 0) {
+            currentCaptureIndex--;
+            loadCurrentCaptureToUI();
+        }
+    }
+
+    private void handleCaptureNextButton(Button button) {
+        if (currentCaptureIndex < responseCaptures.size() - 1) {
+            currentCaptureIndex++;
+            loadCurrentCaptureToUI();
+        }
+    }
+
+    private void updateCaptureVisibility() {
+        boolean show = captureResponse;
+        captureVarNameInput.visible = show;
+        captureVarNameInput.active = show;
+        captureJsonPathInput.visible = show;
+        captureJsonPathInput.active = show;
+        captureScopeButton.visible = show;
+        captureScopeButton.active = show;
+        captureAddButton.visible = show;
+        captureAddButton.active = show;
+        captureRemoveButton.visible = show && !responseCaptures.isEmpty();
+        captureRemoveButton.active = show && !responseCaptures.isEmpty();
+        capturePrevButton.visible = show && responseCaptures.size() > 1;
+        capturePrevButton.active = show && currentCaptureIndex > 0;
+        captureNextButton.visible = show && responseCaptures.size() > 1;
+        captureNextButton.active = show && currentCaptureIndex < responseCaptures.size() - 1;
+    }
+
+    private void loadCurrentCaptureToUI() {
+        if (responseCaptures.isEmpty()) {
+            captureVarNameInput.setValue("");
+            captureJsonPathInput.setValue("");
+            captureScopeButton.setMessage(Component.literal("BLK"));
+        } else if (currentCaptureIndex < responseCaptures.size()) {
+            ResponseCapture capture = responseCaptures.get(currentCaptureIndex);
+            captureVarNameInput.setValue(capture.getVariableName());
+            captureJsonPathInput.setValue(capture.getJsonPath());
+            updateScopeButtonText();
+        }
+        updateCaptureVisibility();
+    }
+
+    private void updateScopeButtonText() {
+        if (responseCaptures.isEmpty() || currentCaptureIndex >= responseCaptures.size()) {
+            captureScopeButton.setMessage(Component.literal("BLK"));
+            return;
+        }
+        ResponseCapture.VariableScope scope = responseCaptures.get(currentCaptureIndex).getScope();
+        String text = switch (scope) {
+            case GLOBAL -> "GLB";
+            case BLOCK -> "BLK";
+            case PLAYER -> "PLR";
+        };
+        captureScopeButton.setMessage(Component.literal(text));
+    }
+
     private void handleSaveButton(Button button) {
         if (this.checkValues()) {
             HttpSenderBlockEntity.Values values = new HttpSenderBlockEntity.Values();
@@ -405,6 +609,15 @@ public class HttpSenderSettingsScreen extends Screen {
             values.customHeaderName = this.customHeaderName;
             values.customHeaderValue = this.customHeaderValue;
             values.parameterMap = this.parameterMap;
+
+            // Response capture settings
+            values.captureResponse = this.captureResponse;
+            values.responseCaptures = new ArrayList<>();
+            for (ResponseCapture capture : this.responseCaptures) {
+                if (capture.isValid()) {
+                    values.responseCaptures.add(capture.copy());
+                }
+            }
 
             PacketDistributor.sendToServer(new SUpdateHttpSenderValuesPacket(
                     this.blockEntity.getBlockPos(),
@@ -500,9 +713,18 @@ public class HttpSenderSettingsScreen extends Screen {
         }
         guiGraphics.drawString(font, paramSummary, leftPos + 70, topPos + 168, 0xAAAAAA);
 
+        // Response capture section label
+        guiGraphics.drawString(font, CAPTURE_LABEL, leftPos + 10, topPos + 203, 0xFFFFFF);
+
+        // Display capture navigation indicator when capture is enabled
+        if (captureResponse && !responseCaptures.isEmpty()) {
+            String navText = (currentCaptureIndex + 1) + "/" + responseCaptures.size();
+            guiGraphics.drawString(font, navText, leftPos + 120, topPos + 245, 0xAAAAAA);
+        }
+
         // Display test result below buttons
         if (!testResult.isEmpty()) {
-            guiGraphics.drawString(font, testResult, leftPos + 10, topPos + 258, testResultColor);
+            guiGraphics.drawString(font, testResult, leftPos + 10, topPos + 318, testResultColor);
         }
     }
 

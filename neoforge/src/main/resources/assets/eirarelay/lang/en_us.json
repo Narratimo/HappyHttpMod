@@ -24,6 +24,9 @@
   "gui.eirarelay.add_button": "+",
   "gui.eirarelay.clear_button": "X",
   "gui.eirarelay.token_label": "Token:",
+  "gui.eirarelay.capture_label": "Capture:",
+  "gui.eirarelay.capture_on": "On",
+  "gui.eirarelay.capture_off": "Off",
   "block.eirarelay.receiver": "HTTP Receiver",
   "block.eirarelay.sender": "HTTP Sender"
 }
