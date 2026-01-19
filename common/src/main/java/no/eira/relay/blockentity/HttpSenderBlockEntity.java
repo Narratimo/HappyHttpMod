@@ -10,9 +10,11 @@ import no.eira.relay.registry.ModBlockEntities;
 import no.eira.relay.utils.JsonUtils;
 import no.eira.relay.utils.NBTConverter;
 import no.eira.relay.utils.QueryBuilder;
+import no.eira.relay.block.HttpSenderBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -27,6 +29,9 @@ public class HttpSenderBlockEntity extends BlockEntity {
     private long lastSentTick;
     private boolean inCooldown;
     private final Values values;
+    private boolean isActive;
+    private long activeStartTick;
+    private static final int ACTIVE_DURATION_TICKS = 20;
 
     public HttpSenderBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.httpSenderBlockEntity.get().get(), pos, state);
@@ -47,6 +52,7 @@ public class HttpSenderBlockEntity extends BlockEntity {
 
     private void sendHttpRequest() {
         if (!this.values.url.isEmpty()) {
+            setActiveState(true);
             Map<String, String> headers = buildAuthHeaders();
             if (this.values.httpMethod.equals(EnumHttpMethod.GET)) {
                 String params = QueryBuilder.paramsToQueryString(this.values.parameterMap);
@@ -56,6 +62,23 @@ public class HttpSenderBlockEntity extends BlockEntity {
                 String params = JsonUtils.parametersFromMapToString(this.values.parameterMap);
                 CommonClass.HTTP_CLIENT.sendPost(this.values.url, params, headers);
             }
+        }
+    }
+
+    public void setActiveState(boolean active) {
+        this.isActive = active;
+        if (active && this.level != null) {
+            this.activeStartTick = this.level.getGameTime();
+        }
+        updateBlockActiveState(active);
+    }
+
+    private void updateBlockActiveState(boolean active) {
+        if (this.level == null || this.level.isClientSide) return;
+        BlockState state = this.level.getBlockState(this.getBlockPos());
+        Block block = state.getBlock();
+        if (block instanceof HttpSenderBlock sender) {
+            sender.setActive(state, this.level, this.getBlockPos(), active);
         }
     }
 
@@ -93,6 +116,15 @@ public class HttpSenderBlockEntity extends BlockEntity {
 
     public void tick() {
         if (this.level == null || this.level.isClientSide) return;
+
+        // Check active state timeout
+        if (isActive) {
+            long currentTick = this.level.getGameTime();
+            if (currentTick - activeStartTick >= ACTIVE_DURATION_TICKS) {
+                setActiveState(false);
+            }
+        }
+
         if (!this.values.poweredType.equals(EnumPoweredType.TIMER)) return;
         if (!inCooldown) return;
 

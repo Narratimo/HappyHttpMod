@@ -5,6 +5,7 @@ import no.eira.relay.network.packet.CHttpSenderOpenGuiPacket;
 import no.eira.relay.platform.Services;
 import no.eira.relay.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
@@ -29,10 +30,13 @@ import org.jetbrains.annotations.Nullable;
 public class HttpSenderBlock extends Block implements EntityBlock {
 
     public static final BooleanProperty LIT = RedstoneTorchBlock.LIT;
+    public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
     public HttpSenderBlock(Properties properties) {
         super(properties);
-        this.registerDefaultState(this.defaultBlockState().setValue(LIT, Boolean.FALSE));
+        this.registerDefaultState(this.defaultBlockState()
+                .setValue(LIT, Boolean.FALSE)
+                .setValue(ACTIVE, Boolean.FALSE));
     }
 
     @Override
@@ -60,7 +64,28 @@ public class HttpSenderBlock extends Block implements EntityBlock {
         if (level.getBlockEntity(pos) instanceof HttpSenderBlockEntity entity) {
             entity.onPowered();
         }
+        spawnSenderParticles(level, pos);
+        setActive(level.getBlockState(pos), level, pos, true);
         level.scheduleTick(pos, this, 4);
+    }
+
+    public void setActive(BlockState state, Level level, BlockPos pos, boolean active) {
+        state = level.getBlockState(pos).setValue(ACTIVE, active);
+        level.setBlock(pos, state, 3);
+    }
+
+    public void spawnSenderParticles(Level level, BlockPos pos) {
+        if (level instanceof ServerLevel serverLevel) {
+            serverLevel.sendParticles(
+                    ParticleTypes.SOUL,
+                    pos.getX() + 0.5,
+                    pos.getY() + 0.5,
+                    pos.getZ() + 0.5,
+                    10,
+                    0.3, 0.3, 0.3,
+                    0.02
+            );
+        }
     }
 
     @Nullable
@@ -92,7 +117,7 @@ public class HttpSenderBlock extends Block implements EntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(LIT);
+        builder.add(LIT, ACTIVE);
     }
 
     @Nullable

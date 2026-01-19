@@ -7,6 +7,8 @@ import no.eira.relay.registry.ModBlockEntities;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -29,11 +31,14 @@ import org.jetbrains.annotations.Nullable;
 public class HttpReceiverBlock extends Block implements EntityBlock {
 
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
+    public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
     public HttpReceiverBlock(Properties props) {
         super(props);
         this.registerDefaultState(
-                this.stateDefinition.any().setValue(POWERED, Boolean.valueOf(false))
+                this.stateDefinition.any()
+                        .setValue(POWERED, Boolean.FALSE)
+                        .setValue(ACTIVE, Boolean.FALSE)
         );
     }
 
@@ -43,7 +48,12 @@ public class HttpReceiverBlock extends Block implements EntityBlock {
     }
 
     public void onSignal(BlockState state, Level level, BlockPos pos){
-        BlockState newState = this.switchPowered(state, level, pos);
+        // Spawn particles for visual feedback
+        spawnReceiverParticles(level, pos);
+        // Set active state briefly
+        setActive(state, level, pos, true);
+
+        BlockState newState = this.switchPowered(level.getBlockState(pos), level, pos);
         float pitch = newState.getValue(POWERED) ? 0.6F : 0.5F;
         level.playSound(null, pos, SoundEvents.LEVER_CLICK, SoundSource.BLOCKS, 0.3F, pitch);
         level.gameEvent(null, newState.getValue(POWERED) ? GameEvent.BLOCK_ACTIVATE : GameEvent.BLOCK_DEACTIVATE, pos);
@@ -77,6 +87,28 @@ public class HttpReceiverBlock extends Block implements EntityBlock {
         state = state.setValue(POWERED, powered);
         level.setBlock(pos, state, 3);
         this.updateNeighbours(state, level, pos);
+    }
+
+    public void setActive(BlockState state, Level level, BlockPos pos, boolean active) {
+        state = level.getBlockState(pos).setValue(ACTIVE, active);
+        level.setBlock(pos, state, 3);
+    }
+
+    public void spawnReceiverParticles(Level level, BlockPos pos) {
+        if (level instanceof ServerLevel serverLevel) {
+            double x = pos.getX() + 0.5;
+            double y = pos.getY() + 0.5;
+            double z = pos.getZ() + 0.5;
+
+            // Green particles for receiving HTTP request
+            serverLevel.sendParticles(
+                    ParticleTypes.HAPPY_VILLAGER,
+                    x, y, z,
+                    10,           // count
+                    0.3, 0.3, 0.3, // spread
+                    0.02          // speed
+            );
+        }
     }
 
     @Nullable
@@ -134,7 +166,7 @@ public class HttpReceiverBlock extends Block implements EntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(POWERED);
+        builder.add(POWERED, ACTIVE);
     }
 
     @Nullable

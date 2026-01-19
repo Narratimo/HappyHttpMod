@@ -16,6 +16,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import no.eira.relay.block.HttpSenderBlock;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -28,6 +29,11 @@ public class HttpSenderBlockEntity extends BlockEntity {
     private long lastSentTick;
     private boolean inCooldown;
     private final Values values;
+
+    // Active state tracking for visual feedback
+    private boolean isActive;
+    private long activeStartTick;
+    private static final int ACTIVE_DURATION_TICKS = 20; // 1 second for network request visualization
 
     public HttpSenderBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.httpSenderBlockEntity.get().get(), pos, state);
@@ -48,6 +54,9 @@ public class HttpSenderBlockEntity extends BlockEntity {
 
     private void sendHttpRequest() {
         if (!this.values.url.isEmpty()) {
+            // Set active state when starting request
+            setActiveState(true);
+
             Map<String, String> headers = buildAuthHeaders();
             if (this.values.httpMethod.equals(EnumHttpMethod.GET)) {
                 String params = QueryBuilder.paramsToQueryString(this.values.parameterMap);
@@ -104,8 +113,31 @@ public class HttpSenderBlockEntity extends BlockEntity {
         inCooldown = true;
     }
 
+    public void setActiveState(boolean active) {
+        this.isActive = active;
+        if (active && this.level != null) {
+            this.activeStartTick = this.level.getGameTime();
+        }
+        updateBlockActiveState(active);
+    }
+
+    private void updateBlockActiveState(boolean active) {
+        if (this.level != null && !this.level.isClientSide) {
+            BlockState state = this.level.getBlockState(this.getBlockPos());
+            if (state.getBlock() instanceof HttpSenderBlock sender) {
+                sender.setActive(this.level, this.getBlockPos(), active);
+            }
+        }
+    }
+
     public void tick() {
         if (this.level == null || this.level.isClientSide) return;
+
+        // Handle active state timeout
+        if (isActive && this.level.getGameTime() - activeStartTick > ACTIVE_DURATION_TICKS) {
+            setActiveState(false);
+        }
+
         if (!this.values.poweredType.equals(EnumPoweredType.TIMER)) return;
         if (!inCooldown) return;
 

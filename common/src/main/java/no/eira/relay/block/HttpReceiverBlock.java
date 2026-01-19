@@ -7,6 +7,8 @@ import no.eira.relay.platform.Services;
 import no.eira.relay.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -30,11 +32,14 @@ import org.jetbrains.annotations.Nullable;
 public class HttpReceiverBlock extends PoweredBlock implements EntityBlock {
 
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
+    public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
     public HttpReceiverBlock(Properties props) {
         super(props);
         this.registerDefaultState(
-                this.stateDefinition.any().setValue(POWERED, Boolean.valueOf(false))
+                this.stateDefinition.any()
+                        .setValue(POWERED, Boolean.valueOf(false))
+                        .setValue(ACTIVE, Boolean.valueOf(false))
         );
     }
 
@@ -48,6 +53,27 @@ public class HttpReceiverBlock extends PoweredBlock implements EntityBlock {
         float pitch = newState.getValue(POWERED) ? 0.6F : 0.5F;
         level.playSound(null, pos, SoundEvents.LEVER_CLICK, SoundSource.BLOCKS, 0.3F, pitch);
         level.gameEvent(null, newState.getValue(POWERED) ? GameEvent.BLOCK_ACTIVATE : GameEvent.BLOCK_DEACTIVATE, pos);
+        spawnReceiverParticles(level, pos);
+        setActive(state, level, pos, true);
+    }
+
+    public void setActive(BlockState state, Level level, BlockPos pos, boolean active) {
+        state = level.getBlockState(pos).setValue(ACTIVE, active);
+        level.setBlock(pos, state, 3);
+    }
+
+    public void spawnReceiverParticles(Level level, BlockPos pos) {
+        if (level instanceof ServerLevel serverLevel) {
+            serverLevel.sendParticles(
+                    ParticleTypes.HAPPY_VILLAGER,
+                    pos.getX() + 0.5,
+                    pos.getY() + 0.5,
+                    pos.getZ() + 0.5,
+                    10,
+                    0.3, 0.3, 0.3,
+                    0.02
+            );
+        }
     }
 
     @Override
@@ -135,7 +161,7 @@ public class HttpReceiverBlock extends PoweredBlock implements EntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(POWERED);
+        builder.add(POWERED, ACTIVE);
     }
 
     @Nullable
