@@ -18,6 +18,7 @@
 | Module | MC Version | Java | Status |
 |--------|------------|------|--------|
 | **neoforge** | 1.21.1 | 21 | ✅ Active - Full features |
+| **neoforge-1.21.4** | 1.21.4 | 21 | ✅ Active - Full features |
 | **forge** | 1.20.2 | 17 | ✅ Active - Full features |
 | **common** | 1.20.2 | 17 | ✅ Shared code for forge |
 | **eira-core** | 1.21.1 | 21 | ✅ Eira Core library mod |
@@ -30,9 +31,10 @@
 ./gradlew build
 
 # Build specific module
-./gradlew :neoforge:build   # Eira Relay (MC 1.21.1)
-./gradlew :eira-core:build  # Eira Core library
-./gradlew :forge:build      # Eira Relay (MC 1.20.2)
+./gradlew :neoforge:build         # Eira Relay (MC 1.21.1)
+./gradlew :neoforge-1.21.4:build  # Eira Relay (MC 1.21.4)
+./gradlew :eira-core:build        # Eira Core library
+./gradlew :forge:build            # Eira Relay (MC 1.20.2)
 
 # Run client
 ./gradlew :neoforge:runClient
@@ -57,15 +59,17 @@ EiraRelay/
 │       ├── enums/               # EnumHttpMethod, EnumPoweredType, EnumTimerUnit
 │       ├── mixin/               # Client mixins
 │       └── utils/               # JsonUtils, NBTConverter, QueryBuilder
+├── neoforge-1.21.4/             # NeoForge 1.21.4 / Java 21 (ACTIVE)
+│   └── src/main/java/no/eira/relay/  # Same structure as neoforge/
 ├── eira-core/                   # Eira Core library mod (NeoForge 1.21.1 / Java 21)
 │   └── src/main/java/org/eira/core/
 │       ├── EiraCore.java        # Mod entry point
-│       ├── api/                 # Public API (EiraAPI, EiraEventBus, events)
+│       ├── api/                 # Public API (EiraAPI, EiraEventBus, events, teams, players, stories, adventures)
 │       └── impl/                # Internal implementations
 ├── common/                      # MC 1.20.2 / Java 17 - Shared code (full features)
 ├── forge/                       # MC 1.20.2 / Java 17 - Full features
 ├── fabric/                      # MC 1.20.2 / Java 17 - Disabled (incomplete)
-└── doc/                         # Documentation
+└── docs/                        # Documentation
 ```
 
 ## Core Features
@@ -101,6 +105,10 @@ EiraRelay/
 - Shared event bus for cross-mod communication
 - Thread-safe publish/subscribe pattern
 - Event types: HttpReceived, ExternalTrigger, RedstoneChange, ServerCommand, CheckpointCompleted
+- Teams API: Create/manage teams, track membership and progress
+- Players API: Track player progress and data
+- Stories API: Chapter progression, secrets, conversation history
+- Adventures API: Checkpoint-based experiences with team/solo modes
 - Debug subscribers log events at DEBUG level for troubleshooting
 - Eira Relay publishes events automatically when eira-core is present
 
@@ -182,6 +190,10 @@ eira-core/build/libs/Eira Core-neoforge-1.21.1-1.1.0.jar
 | 67 | feature/forge-new-endpoints | Port new endpoints and features to forge/common | ✅ |
 | 68 | feature/visual-connection-cues | Visual connection cues (particles, active state) | ✅ |
 | 69 | feature/auth-ux-improvements | Auth UX: masked fields, copy/generate buttons | ✅ |
+| 70 | docs/api-reference | API reference documentation | ✅ |
+| 71 | feature/event-type-constants | Event TYPE string constants | ✅ |
+| 72 | feature/eira-core-expansion | Teams/Players/Stories/Adventures APIs | ✅ |
+| 73 | feature/neoforge-1.21.4 | NeoForge 1.21.4 support | ✅ |
 
 ## Recent Commits (Eira Ecosystem)
 
