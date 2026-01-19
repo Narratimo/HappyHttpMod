@@ -37,6 +37,7 @@ This Minecraft mod introduces custom blocks and HTTP endpoints that interact wit
 |-------|---------|
 | **HTTP Receiver** | Emits redstone signal when webhook is triggered |
 | **HTTP Sender** | Sends HTTP requests when powered by redstone |
+| **Scene Sequencer** | Chains multiple HTTP requests with delays and conditions |
 
 ### Core Capabilities
 
@@ -237,6 +238,14 @@ To allow external access:
 2. Set `bind_address = "0.0.0.0"` in config
 3. Use secret tokens on all Receiver blocks
 4. Consider using a reverse proxy (nginx, Cloudflare) for additional security
+
+## Adventure Toolkit
+
+Ready to build interactive mixed-reality experiences? See the [Adventure Toolkit Guide](docs/ADVENTURE_TOOLKIT.md) for:
+- Example setups (webhook doors, QR checkpoints, alarm systems)
+- Integration guides (Discord, Home Assistant, IFTTT, OBS)
+- Networking configuration (local, LAN, internet)
+- Best practices and troubleshooting
 
 ## Contributing
 

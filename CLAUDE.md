@@ -70,6 +70,7 @@ EiraRelay/
 ├── forge/                       # MC 1.20.2 / Java 17 - Full features
 ├── fabric/                      # MC 1.20.2 / Java 17 - Disabled (incomplete)
 └── docs/                        # Documentation
+    └── ADVENTURE_TOOLKIT.md     # Guide for mixed-reality adventures
 ```
 
 ## Core Features
@@ -84,6 +85,14 @@ EiraRelay/
 - Sends HTTP GET/POST requests on redstone signal
 - Configurable URL, method, and parameters
 - JSON body for POST, query string for GET
+
+### Scene Sequencer Block
+- Chains multiple HTTP requests with configurable delays
+- Up to 8 sequential steps per sequence
+- Conditional execution (always, on success, on failure)
+- Stop behaviors (ignore, stop, reset) on redstone off
+- Loop option for continuous sequence execution
+- Visual feedback with particles when executing steps
 
 ### HTTP Server
 - Embedded `com.sun.net.httpserver.HttpServer`
