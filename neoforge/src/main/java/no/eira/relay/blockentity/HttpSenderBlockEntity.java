@@ -6,6 +6,7 @@ import no.eira.relay.enums.EnumAuthType;
 import no.eira.relay.enums.EnumHttpMethod;
 import no.eira.relay.enums.EnumPoweredType;
 import no.eira.relay.enums.EnumTimerUnit;
+import no.eira.relay.http.api.HttpResult;
 import no.eira.relay.registry.ModBlockEntities;
 import no.eira.relay.utils.JsonUtils;
 import no.eira.relay.utils.NBTConverter;
@@ -14,6 +15,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import no.eira.relay.block.HttpSenderBlock;
@@ -34,6 +36,9 @@ public class HttpSenderBlockEntity extends BlockEntity {
     private boolean isActive;
     private long activeStartTick;
     private static final int ACTIVE_DURATION_TICKS = 20; // 1 second for network request visualization
+
+    // Last HTTP response status code for comparator output
+    private int lastStatusCode = 0;
 
     public HttpSenderBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.httpSenderBlockEntity.get().get(), pos, state);
@@ -60,25 +65,54 @@ public class HttpSenderBlockEntity extends BlockEntity {
             Map<String, String> headers = buildAuthHeaders();
             if (this.values.httpMethod.equals(EnumHttpMethod.GET)) {
                 String params = QueryBuilder.paramsToQueryString(this.values.parameterMap);
-                // Use async retry method for reliability
-                CommonClass.HTTP_CLIENT.sendGetWithRetry(this.values.url, params, headers)
-                    .thenAccept(response -> {
-                        if (!response.isEmpty()) {
-                            Constants.LOG.debug("HTTP Sender GET to {} completed", this.values.url);
+                // Use async method that returns status code
+                CommonClass.HTTP_CLIENT.sendGetWithResult(this.values.url, params, headers)
+                    .thenAccept(result -> {
+                        handleHttpResult(result);
+                        if (result.isSuccess()) {
+                            Constants.LOG.debug("HTTP Sender GET to {} completed with status {}",
+                                this.values.url, result.statusCode());
                         }
                     });
             }
             if (this.values.httpMethod.equals(EnumHttpMethod.POST)) {
                 String params = JsonUtils.parametersFromMapToString(this.values.parameterMap);
-                // Use async retry method for reliability
-                CommonClass.HTTP_CLIENT.sendPostWithRetry(this.values.url, params, headers)
-                    .thenAccept(response -> {
-                        if (!response.isEmpty()) {
-                            Constants.LOG.debug("HTTP Sender POST to {} completed", this.values.url);
+                // Use async method that returns status code
+                CommonClass.HTTP_CLIENT.sendPostWithResult(this.values.url, params, headers)
+                    .thenAccept(result -> {
+                        handleHttpResult(result);
+                        if (result.isSuccess()) {
+                            Constants.LOG.debug("HTTP Sender POST to {} completed with status {}",
+                                this.values.url, result.statusCode());
                         }
                     });
             }
         }
+    }
+
+    private void handleHttpResult(HttpResult result) {
+        int oldStatus = this.lastStatusCode;
+        this.lastStatusCode = result.statusCode();
+
+        // Update comparator output if status changed
+        if (oldStatus != this.lastStatusCode && this.level != null && !this.level.isClientSide) {
+            this.level.updateNeighbourForOutputSignal(this.getBlockPos(), this.getBlockState().getBlock());
+        }
+    }
+
+    /**
+     * Get the comparator signal strength based on last HTTP response status.
+     * @return Signal strength 0-15
+     */
+    public int getComparatorSignal() {
+        return new HttpResult(lastStatusCode, "").toComparatorSignal();
+    }
+
+    /**
+     * Get the last HTTP response status code.
+     */
+    public int getLastStatusCode() {
+        return lastStatusCode;
     }
 
     private Map<String, String> buildAuthHeaders() {
