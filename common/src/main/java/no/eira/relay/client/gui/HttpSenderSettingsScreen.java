@@ -32,6 +32,9 @@ public class HttpSenderSettingsScreen extends Screen {
     private static final Component TEST_TEXT = Component.translatable("gui." + Constants.MOD_ID + ".test_button");
     private static final Component AUTH_LABEL = Component.translatable("gui." + Constants.MOD_ID + ".auth_label");
     private static final Component DISCORD_TEXT = Component.translatable("gui." + Constants.MOD_ID + ".discord_button");
+    private static final Component COPY_TEXT = Component.literal("\u2398");
+    private static final Component SHOW_TEXT = Component.literal("\u25C9");
+    private static final Component HIDE_TEXT = Component.literal("\u25CE");
 
     private final int screenWidth;
     private final int screenHeight;
@@ -51,6 +54,10 @@ public class HttpSenderSettingsScreen extends Screen {
     private EditBox authValueInput;
     private EditBox customHeaderNameInput;
     private EditBox customHeaderValueInput;
+    private Button authCopyButton;
+    private Button authShowButton;
+    private Button customHeaderCopyButton;
+    private boolean authValueVisible = false;
 
     private String urlText;
     private String testResult = "";
@@ -140,11 +147,29 @@ public class HttpSenderSettingsScreen extends Screen {
         );
 
         // Auth value input (token or user:pass)
-        this.authValueInput = new EditBox(font, leftPos + 95, topPos + 120, 145, 20, Component.empty());
+        this.authValueInput = new EditBox(font, leftPos + 95, topPos + 120, 105, 20, Component.empty());
         this.authValueInput.setMaxLength(256);
-        this.authValueInput.setResponder(text -> authValue = text);
-        this.authValueInput.setValue(this.authValue);
+        this.authValueInput.setResponder(text -> {
+            // Only update if in visible/editable mode
+            if (authValueVisible) {
+                authValue = text;
+            }
+        });
         addRenderableWidget(authValueInput);
+
+        // Show/hide button for auth value
+        this.authShowButton = addRenderableWidget(Button.builder(
+                SHOW_TEXT, this::handleAuthShowButton)
+                .bounds(leftPos + 203, topPos + 120, 20, 20)
+                .build()
+        );
+
+        // Copy button for auth value
+        this.authCopyButton = addRenderableWidget(Button.builder(
+                COPY_TEXT, this::handleAuthCopyButton)
+                .bounds(leftPos + 225, topPos + 120, 20, 20)
+                .build()
+        );
 
         // Custom header name input
         this.customHeaderNameInput = new EditBox(font, leftPos + 10, topPos + 145, 100, 20, Component.empty());
@@ -155,12 +180,19 @@ public class HttpSenderSettingsScreen extends Screen {
         addRenderableWidget(customHeaderNameInput);
 
         // Custom header value input
-        this.customHeaderValueInput = new EditBox(font, leftPos + 115, topPos + 145, 125, 20, Component.empty());
+        this.customHeaderValueInput = new EditBox(font, leftPos + 115, topPos + 145, 103, 20, Component.empty());
         this.customHeaderValueInput.setMaxLength(256);
         this.customHeaderValueInput.setResponder(text -> customHeaderValue = text);
         this.customHeaderValueInput.setValue(this.customHeaderValue);
         this.customHeaderValueInput.setHint(Component.literal("Header value"));
         addRenderableWidget(customHeaderValueInput);
+
+        // Copy button for custom header value
+        this.customHeaderCopyButton = addRenderableWidget(Button.builder(
+                COPY_TEXT, this::handleCustomHeaderCopyButton)
+                .bounds(leftPos + 221, topPos + 145, 20, 20)
+                .build()
+        );
 
         // Save button
         this.saveButton = addRenderableWidget(Button.builder(
@@ -201,10 +233,61 @@ public class HttpSenderSettingsScreen extends Screen {
 
         this.authValueInput.visible = showAuthValue && !showCustomHeader;
         this.authValueInput.active = showAuthValue && !showCustomHeader;
+        this.authShowButton.visible = showAuthValue && !showCustomHeader;
+        this.authShowButton.active = showAuthValue && !showCustomHeader;
+        this.authCopyButton.visible = showAuthValue && !showCustomHeader;
+        this.authCopyButton.active = showAuthValue && !showCustomHeader;
         this.customHeaderNameInput.visible = showCustomHeader;
         this.customHeaderNameInput.active = showCustomHeader;
         this.customHeaderValueInput.visible = showCustomHeader;
         this.customHeaderValueInput.active = showCustomHeader;
+        this.customHeaderCopyButton.visible = showCustomHeader;
+        this.customHeaderCopyButton.active = showCustomHeader;
+
+        // Update masking state
+        updateAuthMasking();
+    }
+
+    private void updateAuthMasking() {
+        if (authValueVisible) {
+            // In visible mode - editable
+            authValueInput.setEditable(true);
+            authShowButton.setMessage(HIDE_TEXT);
+        } else {
+            // In hidden mode - show masked, read-only
+            authValueInput.setEditable(false);
+            authShowButton.setMessage(SHOW_TEXT);
+            // Display masked version (without triggering responder)
+            String masked = (authValue != null && !authValue.isEmpty())
+                ? "*".repeat(Math.min(authValue.length(), 16))
+                : "";
+            authValueInput.setValue(masked);
+        }
+    }
+
+    private void handleAuthShowButton(Button button) {
+        authValueVisible = !authValueVisible;
+        if (authValueVisible) {
+            // Restore actual value when revealing
+            authValueInput.setValue(authValue != null ? authValue : "");
+        }
+        updateAuthMasking();
+    }
+
+    private void handleAuthCopyButton(Button button) {
+        if (authValue != null && !authValue.isEmpty()) {
+            minecraft.keyboardHandler.setClipboard(authValue);
+            testResult = "Copied to clipboard";
+            testResultColor = 0x55FF55;
+        }
+    }
+
+    private void handleCustomHeaderCopyButton(Button button) {
+        if (customHeaderValue != null && !customHeaderValue.isEmpty()) {
+            minecraft.keyboardHandler.setClipboard(customHeaderValue);
+            testResult = "Copied to clipboard";
+            testResultColor = 0x55FF55;
+        }
     }
 
     private void handlePowerModeButton(Button button) {
