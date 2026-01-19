@@ -1,9 +1,12 @@
 package no.eira.relay;
 
+import net.minecraft.server.level.ServerLevel;
 import no.eira.relay.http.HttpClientImpl;
 import no.eira.relay.http.HttpServerImpl;
 import no.eira.relay.http.api.IHttpClient;
 import no.eira.relay.http.api.IHttpServer;
+import no.eira.relay.http.handlers.BroadcastHandler;
+import no.eira.relay.http.handlers.RedstoneHandler;
 import no.eira.relay.registry.ModBlockEntities;
 import no.eira.relay.registry.ModBlocks;
 import no.eira.relay.registry.ModItems;
@@ -49,5 +52,19 @@ public class CommonClass {
         HTTP_SERVER.stopServer();
     }
 
+    /**
+     * Initialize the server level for HTTP handlers that need world access
+     */
+    public static void initServerLevel(ServerLevel level) {
+        RedstoneHandler.setServerLevel(level);
+        BroadcastHandler.setServerLevel(level);
+        Constants.LOG.info("Server level initialized for HTTP handlers");
+    }
 
+    /**
+     * Called every server tick to process redstone emissions
+     */
+    public static void onServerTick() {
+        RedstoneHandler.tick();
+    }
 }

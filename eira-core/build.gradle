@@ -1,0 +1,80 @@
+plugins {
+    id 'idea'
+    id 'maven-publish'
+    id 'net.neoforged.gradle.userdev' version '7.0.163'
+    id 'java-library'
+}
+
+version = project.version
+group = 'org.eira.core'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'NeoForge'
+        url = 'https://maven.neoforged.net/releases/'
+    }
+}
+
+// Force consistent ASM versions to avoid module conflicts
+configurations.all {
+    resolutionStrategy {
+        force 'org.ow2.asm:asm:9.7'
+        force 'org.ow2.asm:asm-commons:9.7'
+        force 'org.ow2.asm:asm-tree:9.7'
+        force 'org.ow2.asm:asm-util:9.7'
+        force 'org.ow2.asm:asm-analysis:9.7'
+    }
+}
+
+base {
+    archivesName = "Eira Core-neoforge-${minecraft_version}"
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+runs {
+    configureEach {
+        workingDirectory project.file('run')
+        modSources.add(project.sourceSets.main)
+    }
+}
+
+dependencies {
+    implementation "net.neoforged:neoforge:${neoforge_version}"
+}
+
+tasks.named("sourcesJar", Jar) {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.named('jar', Jar).configure {
+    manifest {
+        attributes([
+            'Specification-Title'     : 'Eira Core',
+            'Specification-Vendor'    : 'Eira',
+            'Specification-Version'   : project.version,
+            'Implementation-Title'    : 'Eira Core',
+            'Implementation-Version'  : project.version,
+            'Implementation-Vendor'   : 'Eira',
+        ])
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId base.archivesName.get()
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            url "file://" + System.getenv("local_maven")
+        }
+    }
+}

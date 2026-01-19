@@ -1,0 +1,34 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="All Rights Reserved"
+issueTrackerURL="https://github.com/Narratimo/EiraRelay/issues"
+
+[[mods]]
+modId="eiracore"
+version="${version}"
+displayName="Eira Core"
+authors="Eira"
+description='''
+Library mod providing shared APIs for the Eira mod ecosystem.
+
+Features:
+- Event bus for cross-mod communication
+- Team and player management (future)
+- Server integration (future)
+
+Required by: Eira Relay, Eira NPC
+'''
+
+[[dependencies.eiracore]]
+modId="neoforge"
+type="required"
+versionRange="[21.0,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.eiracore]]
+modId="minecraft"
+type="required"
+versionRange="[1.21,1.22)"
+ordering="NONE"
+side="BOTH"

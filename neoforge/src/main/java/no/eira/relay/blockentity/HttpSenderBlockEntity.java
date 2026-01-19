@@ -51,11 +51,23 @@ public class HttpSenderBlockEntity extends BlockEntity {
             Map<String, String> headers = buildAuthHeaders();
             if (this.values.httpMethod.equals(EnumHttpMethod.GET)) {
                 String params = QueryBuilder.paramsToQueryString(this.values.parameterMap);
-                CommonClass.HTTP_CLIENT.sendGet(this.values.url, params, headers);
+                // Use async retry method for reliability
+                CommonClass.HTTP_CLIENT.sendGetWithRetry(this.values.url, params, headers)
+                    .thenAccept(response -> {
+                        if (!response.isEmpty()) {
+                            Constants.LOG.debug("HTTP Sender GET to {} completed", this.values.url);
+                        }
+                    });
             }
             if (this.values.httpMethod.equals(EnumHttpMethod.POST)) {
                 String params = JsonUtils.parametersFromMapToString(this.values.parameterMap);
-                CommonClass.HTTP_CLIENT.sendPost(this.values.url, params, headers);
+                // Use async retry method for reliability
+                CommonClass.HTTP_CLIENT.sendPostWithRetry(this.values.url, params, headers)
+                    .thenAccept(response -> {
+                        if (!response.isEmpty()) {
+                            Constants.LOG.debug("HTTP Sender POST to {} completed", this.values.url);
+                        }
+                    });
             }
         }
     }

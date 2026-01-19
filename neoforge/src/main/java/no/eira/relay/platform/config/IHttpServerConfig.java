@@ -10,5 +10,16 @@ public interface IHttpServerConfig {
 
     String getGlobalRedirect();
 
+    // Rate limiting
+    boolean isRateLimitEnabled();
+    int getRateLimitPerMinute();
+
+    // Authentication
+    boolean requireAuth();
+    List<String> getApiKeys();
+
+    // CORS
+    boolean isCorsEnabled();
+    List<String> getCorsOrigins();
 }
 

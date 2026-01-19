@@ -21,7 +21,14 @@ public class HttpServerConfig implements IHttpServerConfig {
     private static List<GlobalParam> globalParams = new ArrayList<>();
     private static String globalRedirect;
 
+    // ModConfig values
     private static ModConfigSpec.ConfigValue<Integer> port;
+    private static ModConfigSpec.ConfigValue<Boolean> rateLimitEnabled;
+    private static ModConfigSpec.ConfigValue<Integer> rateLimitPerMinute;
+    private static ModConfigSpec.ConfigValue<Boolean> requireAuth;
+    private static ModConfigSpec.ConfigValue<List<? extends String>> apiKeys;
+    private static ModConfigSpec.ConfigValue<Boolean> corsEnabled;
+    private static ModConfigSpec.ConfigValue<List<? extends String>> corsOrigins;
 
     static {
         Pair<HttpServerConfig, ModConfigSpec> pair = new ModConfigSpec.Builder().configure(HttpServerConfig::new);
@@ -40,6 +47,42 @@ public class HttpServerConfig implements IHttpServerConfig {
         port = builder
                 .comment("Http Server Port")
                 .defineInRange("port", 8080, 0, 65535);
+
+        builder.pop();
+
+        builder.push("Rate Limiting");
+
+        rateLimitEnabled = builder
+                .comment("Enable rate limiting to prevent abuse")
+                .define("enabled", false);
+
+        rateLimitPerMinute = builder
+                .comment("Maximum requests per minute per IP address")
+                .defineInRange("requestsPerMinute", 100, 1, 10000);
+
+        builder.pop();
+
+        builder.push("Authentication");
+
+        requireAuth = builder
+                .comment("Require API key authentication for all requests")
+                .define("requireAuth", false);
+
+        apiKeys = builder
+                .comment("List of valid API keys (if requireAuth is true)")
+                .defineList("apiKeys", List.of(), obj -> obj instanceof String);
+
+        builder.pop();
+
+        builder.push("CORS");
+
+        corsEnabled = builder
+                .comment("Enable CORS headers for browser-based requests")
+                .define("enabled", false);
+
+        corsOrigins = builder
+                .comment("Allowed origins for CORS (use * for all)")
+                .defineList("origins", List.of("*"), obj -> obj instanceof String);
 
         builder.pop();
     }
@@ -142,6 +185,40 @@ public class HttpServerConfig implements IHttpServerConfig {
     @Override
     public String getGlobalRedirect() {
         return globalRedirect;
+    }
+
+    @Override
+    public boolean isRateLimitEnabled() {
+        return rateLimitEnabled != null && rateLimitEnabled.get();
+    }
+
+    @Override
+    public int getRateLimitPerMinute() {
+        return rateLimitPerMinute != null ? rateLimitPerMinute.get() : 100;
+    }
+
+    @Override
+    public boolean requireAuth() {
+        return requireAuth != null && requireAuth.get();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<String> getApiKeys() {
+        if (apiKeys == null) return List.of();
+        return (List<String>) apiKeys.get();
+    }
+
+    @Override
+    public boolean isCorsEnabled() {
+        return corsEnabled != null && corsEnabled.get();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<String> getCorsOrigins() {
+        if (corsOrigins == null) return List.of("*");
+        return (List<String>) corsOrigins.get();
     }
 }
 
