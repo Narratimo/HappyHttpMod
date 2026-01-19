@@ -159,7 +159,6 @@ eira-core/build/libs/Eira Core-neoforge-1.21.1-1.1.0.jar
 - REST API for game state, teams, and players
 
 ### Deferred
-- Visual connection cues for blocks
 - Complete Fabric module
 
 ## Completed PRs
@@ -181,6 +180,7 @@ eira-core/build/libs/Eira Core-neoforge-1.21.1-1.1.0.jar
 | 65 | feature/auth-and-discord | Auth helpers, Discord integration, parameter editor | ✅ |
 | 66 | feature/webhook-security | Secret token validation for HTTP Receiver | ✅ |
 | 67 | feature/forge-new-endpoints | Port new endpoints and features to forge/common | ✅ |
+| 68 | feature/visual-connection-cues | Visual connection cues (particles, active state) | ✅ |
 
 ## Recent Commits (Eira Ecosystem)
 
