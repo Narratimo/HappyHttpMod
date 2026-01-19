@@ -101,6 +101,8 @@ EiraRelay/
 - Shared event bus for cross-mod communication
 - Thread-safe publish/subscribe pattern
 - Event types: HttpReceived, ExternalTrigger, RedstoneChange, ServerCommand, CheckpointCompleted
+- Debug subscribers log events at DEBUG level for troubleshooting
+- Eira Relay publishes events automatically when eira-core is present
 
 ## Key Files
 
@@ -152,13 +154,13 @@ eira-core/build/libs/Eira Core-neoforge-1.21.1-1.1.0.jar
 
 ## Next Actions
 
-### Phase 5: Eira Core Integration
-- Connect Eira Relay to publish events through Eira Core
-- Add eira-core as dependency in neoforge module
+### Phase 6: Eira Server (Future)
+- Create separate Node.js repository for game/checkpoint management
+- REST API for game state, teams, and players
 
-### Deferred (Future PRs)
-- Eira Server (separate repository) - Node.js backend
-- Visual connection cues
+### Deferred
+- Visual connection cues for blocks
+- Port new features to Forge module (1.20.2)
 - Complete Fabric module
 
 ## Completed PRs
@@ -179,3 +181,11 @@ eira-core/build/libs/Eira Core-neoforge-1.21.1-1.1.0.jar
 | 64 | feature/norwegian-translations | Norwegian translations | ✅ |
 | 65 | feature/auth-and-discord | Auth helpers, Discord integration, parameter editor | ✅ |
 | 66 | feature/webhook-security | Secret token validation for HTTP Receiver | ✅ |
+
+## Recent Commits (Eira Ecosystem)
+
+| Commit | Description |
+|--------|-------------|
+| 71d4ce6 | Phase 1-4: New endpoints, security, retry, eira-core module |
+| 6a33035 | Phase 5: Integrate Eira Core event publishing |
+| 241e167 | Add debug event subscribers to Eira Core |
