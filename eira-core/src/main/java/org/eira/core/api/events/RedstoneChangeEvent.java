@@ -9,4 +9,7 @@ public record RedstoneChangeEvent(
     BlockPos pos,
     int oldStrength,
     int newStrength
-) implements EiraEvent {}
+) implements EiraEvent {
+    /** Event type identifier for cross-mod compatibility */
+    public static final String TYPE = "REDSTONE_CHANGE";
+}

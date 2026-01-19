@@ -10,4 +10,7 @@ public record CheckpointCompletedEvent(
     String checkpointId,
     UUID playerId,
     UUID teamId
-) implements EiraEvent {}
+) implements EiraEvent {
+    /** Event type identifier for cross-mod compatibility */
+    public static final String TYPE = "CHECKPOINT_COMPLETED";
+}

@@ -9,4 +9,7 @@ public record ExternalTriggerEvent(
     String source,
     String triggerId,
     Map<String, Object> data
-) implements EiraEvent {}
+) implements EiraEvent {
+    /** Event type identifier for cross-mod compatibility */
+    public static final String TYPE = "EXTERNAL_TRIGGER";
+}

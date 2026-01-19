@@ -9,4 +9,7 @@ public record HttpReceivedEvent(
     String endpoint,
     String method,
     Map<String, Object> params
-) implements EiraEvent {}
+) implements EiraEvent {
+    /** Event type identifier for cross-mod compatibility */
+    public static final String TYPE = "HTTP_RECEIVED";
+}

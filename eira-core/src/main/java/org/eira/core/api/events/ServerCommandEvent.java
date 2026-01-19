@@ -9,4 +9,7 @@ import java.util.Map;
 public record ServerCommandEvent(
     String command,
     Map<String, Object> params
-) implements EiraEvent {}
+) implements EiraEvent {
+    /** Event type identifier for cross-mod compatibility */
+    public static final String TYPE = "SERVER_COMMAND";
+}
