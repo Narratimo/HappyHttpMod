@@ -15,6 +15,7 @@ import net.minecraft.network.chat.Component;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.security.SecureRandom;
 import java.util.Enumeration;
 
 public class HttpReceiverSettingsScreen extends Screen {
@@ -26,6 +27,11 @@ public class HttpReceiverSettingsScreen extends Screen {
     private static Component PORT_LABEL = Component.translatable("gui."+ Constants.MOD_ID + ".port_label");
     private static Component IP_LABEL = Component.translatable("gui."+ Constants.MOD_ID + ".ip_label");
     private static Component TOKEN_LABEL = Component.translatable("gui."+ Constants.MOD_ID + ".token_label");
+    private static final Component COPY_TEXT = Component.literal("\u2398");
+    private static final Component GENERATE_TEXT = Component.literal("\u2672");
+    private static final Component SHOW_TEXT = Component.literal("\u25C9");
+    private static final Component HIDE_TEXT = Component.literal("\u25CE");
+    private static final String TOKEN_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
     private final int screenWidth;
     private final int screenHeight;
@@ -39,6 +45,12 @@ public class HttpReceiverSettingsScreen extends Screen {
     private EditBox timerInput;
     private Button timerUnitButton;
     private EditBox secretTokenInput;
+    private Button tokenGenerateButton;
+    private Button tokenCopyButton;
+    private Button tokenShowButton;
+    private boolean tokenVisible = false;
+    private String statusMessage = "";
+    private int statusColor = 0xAAAAAA;
 
     private String endpointText;
     private EnumPoweredType poweredType;
@@ -102,12 +114,37 @@ public class HttpReceiverSettingsScreen extends Screen {
         );
 
         // Secret token input
-        this.secretTokenInput = new EditBox(font, leftPos + 45, topPos + 58, 153, 20, Component.empty());
+        this.secretTokenInput = new EditBox(font, leftPos + 45, topPos + 58, 88, 20, Component.empty());
         this.secretTokenInput.setResponder(text -> {
-            secretTokenValue = text;
+            // Only update if in visible/editable mode
+            if (tokenVisible) {
+                secretTokenValue = text;
+            }
         });
-        secretTokenInput.insertText(blockEntity.getValues().secretToken);
         addRenderableWidget(secretTokenInput);
+
+        // Generate token button
+        this.tokenGenerateButton = addRenderableWidget(Button.builder(
+                GENERATE_TEXT, this::handleGenerateButton)
+                .bounds(leftPos + 136, topPos + 58, 20, 20)
+                .build()
+        );
+
+        // Show/hide token button
+        this.tokenShowButton = addRenderableWidget(Button.builder(
+                SHOW_TEXT, this::handleShowButton)
+                .bounds(leftPos + 158, topPos + 58, 20, 20)
+                .build()
+        );
+
+        // Copy token button
+        this.tokenCopyButton = addRenderableWidget(Button.builder(
+                COPY_TEXT, this::handleCopyButton)
+                .bounds(leftPos + 180, topPos + 58, 20, 20)
+                .build()
+        );
+
+        updateTokenMasking();
 
         // Save button
         this.saveButton = addRenderableWidget(Button.builder(
@@ -142,6 +179,51 @@ public class HttpReceiverSettingsScreen extends Screen {
         int nextIndex = (this.timerUnit.ordinal() + 1) % units.length;
         this.timerUnit = units[nextIndex];
         button.setMessage(this.timerUnit.getComponent());
+    }
+
+    private void handleGenerateButton(Button button) {
+        SecureRandom random = new SecureRandom();
+        StringBuilder token = new StringBuilder(32);
+        for (int i = 0; i < 32; i++) {
+            token.append(TOKEN_CHARS.charAt(random.nextInt(TOKEN_CHARS.length())));
+        }
+        secretTokenValue = token.toString();
+        tokenVisible = true;
+        updateTokenMasking();
+        statusMessage = "Token generated";
+        statusColor = 0x55FF55;
+    }
+
+    private void handleShowButton(Button button) {
+        tokenVisible = !tokenVisible;
+        if (tokenVisible) {
+            // Restore actual value when revealing
+            secretTokenInput.setValue(secretTokenValue != null ? secretTokenValue : "");
+        }
+        updateTokenMasking();
+    }
+
+    private void handleCopyButton(Button button) {
+        if (secretTokenValue != null && !secretTokenValue.isEmpty()) {
+            minecraft.keyboardHandler.setClipboard(secretTokenValue);
+            statusMessage = "Copied to clipboard";
+            statusColor = 0x55FF55;
+        }
+    }
+
+    private void updateTokenMasking() {
+        if (tokenVisible) {
+            secretTokenInput.setEditable(true);
+            secretTokenInput.setValue(secretTokenValue != null ? secretTokenValue : "");
+            tokenShowButton.setMessage(HIDE_TEXT);
+        } else {
+            secretTokenInput.setEditable(false);
+            String masked = (secretTokenValue != null && !secretTokenValue.isEmpty())
+                ? "●".repeat(Math.min(secretTokenValue.length(), 12))
+                : "";
+            secretTokenInput.setValue(masked);
+            tokenShowButton.setMessage(SHOW_TEXT);
+        }
     }
 
     private void handleSaveButton(Button button){
@@ -180,6 +262,11 @@ public class HttpReceiverSettingsScreen extends Screen {
         int infoY = topPos + 111;
         guiGraphics.drawString(font, PORT_LABEL.getString() + ": " + port, leftPos, infoY, 0xAAAAAA);
         guiGraphics.drawString(font, IP_LABEL.getString() + ": " + localIp, leftPos, infoY + 12, 0xAAAAAA);
+
+        // Display status message
+        if (!statusMessage.isEmpty()) {
+            guiGraphics.drawString(font, statusMessage, leftPos, infoY + 24, statusColor);
+        }
     }
 
     private String getLocalIpAddress() {
