@@ -2,119 +2,258 @@
 
 Eira Relay enables you to create adventures that bridge the physical world and the Minecraft world. Each world can trigger events in the other. **The project is maintained by [Eira](https://www.eira.no)**, a non-commercial organization focused on teaching kids and teenagers to code and learn technology.
 
-This Minecraft mod introduces two custom blocks that interact with webhooks and HTTP requests, enabling powerful integrations and automations both within and outside the Minecraft world.
+This Minecraft mod introduces custom blocks and HTTP endpoints that interact with webhooks and HTTP requests, enabling powerful integrations and automations both within and outside the Minecraft world.
 
 ![Screenshot 2024-06-12 155630](https://github.com/clapters/HappyHttpMod/assets/128842272/59fcf0e0-b03a-4e82-ba70-7696e9f79b77)
 
 ## Table of Contents
 
+- [Introduction](#introduction)
+- [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Features](#features)
+- [HTTP Endpoints](#http-endpoints)
 - [Configuration](#configuration)
+- [Security](#security)
 - [Contributing](#contributing)
 - [License](#license)
 
-
 ## Introduction
 
-**Eira Relay** allows you to connect your Minecraft world to your external world using HTTP requests. Can for example be used with home automation. Let's say you want a secret door in Minecraft to open when a QR code is scanned, or when a motion sensor is triggered. Or you want to send an SMS when you enter a location in Minecraft, or trigger a redstone circuit. Only your imagination stops you from finding fun ways of using Eira Relay.
+**Eira Relay** allows you to connect your Minecraft world to your external world using HTTP requests. Use it with home automation, QR codes, sensors, Discord webhooks, and more. Let your imagination run wild!
 
-### Usage
-
-
-- **HTTP Receiver Block**:
-  - **Starting Automations in Minecraft from Outside Triggers**: Use the HTTP Receiver Block to initiate Minecraft automations based on external events. For example, trigger in-game events from a smart home system when motion is detected, or start a Minecraft mechanism when a specific condition is met on an external server or service.
-
-  ![reciever](https://github.com/clapters/HappyHttpMod/assets/128842272/9c3c15d5-357c-4c22-b073-bd78d8bf8872)
-
-
-- **HTTP Sender Block**:
-  - **Trigger Automation on APIs, Home Automation Systems, etc.**: Use the HTTP Sender Block to send HTTP requests to external APIs or services. For example, trigger actions on a home automation system, like turning on lights or unlocking doors, when a redstone signal is received, or send notifications or update external systems based on in-game events.
-
-  ![sender](https://github.com/clapters/HappyHttpMod/assets/128842272/611827f1-b15a-46ef-b44b-bb3de7673dae)
+**Example use cases:**
+- Open a secret door in Minecraft when a QR code is scanned
+- Trigger redstone circuits from motion sensors
+- Send Discord notifications when players reach checkpoints
+- Control smart home devices from in-game buttons
+- Create interactive scavenger hunts with real-world triggers
 
 ## Features
 
-- **HTTP Receiver Block**: Sends a redstone signal when a webhook with the correct parameters is accessed. Ideal for starting automations in Minecraft from outside triggers.
-- **HTTP Sender Block**: Sends an HTTP request to a specified URL with parameters when it receives a redstone signal. Perfect for triggering automation on APIs, home automation systems, and more.
-- **Cross-Platform**: Integrated webhook server. Works on both Windows and Linux. Binds to localhost by default for security.
+### Blocks
+
+| Block | Purpose |
+|-------|---------|
+| **HTTP Receiver** | Emits redstone signal when webhook is triggered |
+| **HTTP Sender** | Sends HTTP requests when powered by redstone |
+
+### Core Capabilities
+
+- **Power Modes**: Switch (toggle) or Timer (pulse for configurable duration)
+- **Authentication**: Bearer tokens, Basic auth, Custom headers for outgoing requests
+- **Secret Token Validation**: Protect receivers with token authentication
+- **Visual Feedback**: Particles and glow effects when blocks are active
+- **Discord Integration**: One-click preset for Discord webhook setup
+- **Global Parameters**: Server-wide parameters applied to all requests
+- **Test Button**: Verify sender configuration without redstone
+- **Rate Limiting**: Configurable request limits per IP (disabled by default)
+- **CORS Support**: Cross-origin requests for web integrations
+
+### HTTP Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/trigger/{id}` | POST | Named triggers for QR codes, sensors |
+| `/status` | GET | Health check with uptime and version |
+| `/redstone` | POST | Emit redstone signal at coordinates |
+| `/broadcast` | POST | Send chat, title, or actionbar messages |
+| `/{custom}` | POST | Custom endpoints from Receiver blocks |
+
+### Platform Support
+
+| Platform | Minecraft | Status |
+|----------|-----------|--------|
+| **NeoForge** | 1.21.1 | Active |
+| **Forge** | 1.20.2 | Active |
 
 ## Installation
 
 ### Requirements
 
-#### Supported Platforms
-
-- **NeoForge 1.21.1** (Active)
+- Minecraft with NeoForge 1.21.1 or Forge 1.20.2
+- Java 21 (NeoForge) or Java 17 (Forge)
 
 ### Steps
 
-1. **Download the Mod**:
-   - Download the latest release of the mod from the [Releases](https://github.com/Narratimo/HappyHttpMod/releases) page.
+1. **Download the Mod** from [Releases](https://github.com/Narratimo/HappyHttpMod/releases)
 
-2. **Install NeoForge:**
-   Download and install NeoForge for Minecraft 1.21.1 from [NeoForge's official site](https://neoforged.net/).
+2. **Install Mod Loader**:
+   - NeoForge: [neoforged.net](https://neoforged.net/)
+   - Forge: [files.minecraftforge.net](https://files.minecraftforge.net/)
 
-3. **Add the Mod to Minecraft:**
-   - Navigate to your Minecraft installation folder.
-   - Open the `mods` folder (create it if it doesn't exist).
-   - Place the downloaded mod `.jar` file into the `mods` folder.
-
-4. **Launch Minecraft:**
-   - Open the Minecraft Launcher.
-   - Select the NeoForge profile.
-   - Start the game.
+3. **Add to Minecraft**:
+   - Place the `.jar` file in your `mods` folder
+   - Launch with the appropriate mod loader profile
 
 ## Usage
 
-1. **Configure the HTTP Server**:
-   - After the first run, a configuration file will be generated in the Minecraft configuration directory (usually `.minecraft/config/`).
-   - The server binds to localhost (127.0.0.1) by default for security.
-   - Default port: 8080
+### HTTP Receiver Block
 
-2. **Place and Configure Blocks**:
-   - **HTTP Receiver Block**:
-     - Place the HTTP Receiver Block in your Minecraft world.
-     - Right-click the block (creative mode) to open its configuration interface.
-     - Set up the endpoint URL (e.g., `/secret/door`).
-     - When an HTTP POST is received at `http://localhost:8080/secret/door`, the block emits a redstone signal.
+Listens for incoming HTTP requests and emits a redstone signal.
 
-   - **HTTP Sender Block**:
-     - Place the HTTP Sender Block in your Minecraft world.
-     - Right-click the block (creative mode) to open its configuration interface.
-     - Set the target URL endpoint.
-     - Select HTTP method (GET or POST).
-     - Configure parameters as key-value pairs.
-     - When the block receives a redstone signal, it sends the HTTP request.
+![reciever](https://github.com/clapters/HappyHttpMod/assets/128842272/9c3c15d5-357c-4c22-b073-bd78d8bf8872)
 
-3. **Set Up Redstone Circuits**:
-   - Connect the HTTP Receiver Block to redstone dust and a redstone lamp or any other redstone mechanism.
-   - Ensure the HTTP Sender Block is connected to a redstone input source (like a button or lever).
+**Setup:**
+1. Place the block and right-click (creative mode) to configure
+2. Set the endpoint URL (e.g., `/secret/door`)
+3. Choose power mode:
+   - **Switch**: Toggles on/off with each request
+   - **Timer**: Pulses for a set duration (ticks or seconds)
+4. (Optional) Set a secret token for authentication
+5. Connect redstone to your mechanism
+
+**Triggering:**
+```bash
+# Basic request
+curl -X POST http://localhost:8080/secret/door
+
+# With secret token (header)
+curl -X POST http://localhost:8080/secret/door \
+  -H "Authorization: Bearer your-secret-token"
+
+# With secret token (query parameter)
+curl -X POST "http://localhost:8080/secret/door?token=your-secret-token"
+```
+
+### HTTP Sender Block
+
+Sends HTTP requests when powered by redstone.
+
+![sender](https://github.com/clapters/HappyHttpMod/assets/128842272/611827f1-b15a-46ef-b44b-bb3de7673dae)
+
+**Setup:**
+1. Place the block and right-click (creative mode) to configure
+2. Set the target URL
+3. Choose HTTP method (GET or POST)
+4. Configure parameters (key-value pairs)
+5. (Optional) Set authentication:
+   - **Bearer**: Token-based auth
+   - **Basic**: Username:password
+   - **Custom Header**: Any header name/value
+6. Choose power mode (Switch or Timer cooldown)
+7. Use the **Test** button to verify configuration
+8. Connect redstone input (button, lever, pressure plate, etc.)
+
+**Discord Integration:**
+1. Click the **Discord** button for webhook preset
+2. Paste your Discord webhook URL
+3. Add a `content` parameter with your message
+4. Power with redstone to send messages to Discord!
+
+## HTTP Endpoints
+
+### `/trigger/{id}` - Named Triggers
+
+Trigger named events for QR codes, sensors, or external systems.
+
+```bash
+curl -X POST http://localhost:8080/trigger/checkpoint1
+```
+
+### `/status` - Health Check
+
+Get server status, uptime, and version info.
+
+```bash
+curl http://localhost:8080/status
+```
+
+Response:
+```json
+{
+  "status": "ok",
+  "mod": "Eira Relay",
+  "version": "1.1.0",
+  "uptime": 3600
+}
+```
+
+### `/redstone` - Remote Redstone
+
+Emit a redstone signal at specific coordinates.
+
+```bash
+curl -X POST http://localhost:8080/redstone \
+  -H "Content-Type: application/json" \
+  -d '{"x": 100, "y": 64, "z": 200, "strength": 15, "duration": 20}'
+```
+
+### `/broadcast` - Messages
+
+Send messages to all players.
+
+```bash
+# Chat message
+curl -X POST http://localhost:8080/broadcast \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Hello everyone!", "type": "chat"}'
+
+# Title
+curl -X POST http://localhost:8080/broadcast \
+  -d '{"message": "Welcome!", "type": "title"}'
+
+# Actionbar
+curl -X POST http://localhost:8080/broadcast \
+  -d '{"message": "Press E to continue", "type": "actionbar"}'
+```
 
 ## Configuration
 
-The mod configuration is stored in the Minecraft config directory. The HTTP server binds to localhost (127.0.0.1) by default for security.
+Configuration file location: `.minecraft/config/eirarelay-common.toml`
 
-**Port Forwarding (for external access)**:
-- To allow webhooks from outside your local network, you need to set up port forwarding on your router.
-- Configure your router to forward the webhook port (default: 8080) to your Minecraft server IP.
+```toml
+[server]
+# HTTP server port
+port = 8080
+
+# Bind address (localhost for security, 0.0.0.0 for all interfaces)
+bind_address = "127.0.0.1"
+
+# Rate limiting (requests per minute per IP, 0 = disabled)
+rate_limit = 0
+
+# CORS allowed origins (comma-separated, empty = disabled)
+cors_origins = ""
+
+[global_params]
+# Parameters added to all outgoing requests
+# param1 = "value1"
+```
+
+## Security
+
+### Recommendations
+
+1. **Keep localhost binding** unless you need external access
+2. **Use secret tokens** on Receiver blocks exposed to the internet
+3. **Enable rate limiting** for public-facing endpoints
+4. **Use authentication** on Sender blocks for sensitive APIs
+
+### Port Forwarding
+
+To allow external access:
+1. Configure your router to forward port 8080 (or your configured port)
+2. Set `bind_address = "0.0.0.0"` in config
+3. Use secret tokens on all Receiver blocks
+4. Consider using a reverse proxy (nginx, Cloudflare) for additional security
 
 ## Contributing
 
-Guidelines for contributing to the project:
+We welcome contributions!
 
-- Fork the repository.
-- Create your feature branch (`git checkout -b feature/AmazingFeature`).
-- Commit your changes (`git commit -m 'Add some AmazingFeature'`).
-- Push to the branch (`git push origin feature/AmazingFeature`).
-- Open a pull request.
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 [Join our Discord server](https://discord.gg/DVuQSV27pa)
 
 ## Support
 
-If you encounter any issues or have questions, please open an issue on the [GitHub Issues](https://github.com/Narratimo/HappyHttpMod/issues) page.
+- **Issues**: [GitHub Issues](https://github.com/Narratimo/HappyHttpMod/issues)
+- **Discord**: [Join our server](https://discord.gg/DVuQSV27pa)
 
 ## License
 
