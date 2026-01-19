@@ -160,7 +160,6 @@ eira-core/build/libs/Eira Core-neoforge-1.21.1-1.1.0.jar
 
 ### Deferred
 - Visual connection cues for blocks
-- Port new features to Forge module (1.20.2)
 - Complete Fabric module
 
 ## Completed PRs
@@ -181,6 +180,7 @@ eira-core/build/libs/Eira Core-neoforge-1.21.1-1.1.0.jar
 | 64 | feature/norwegian-translations | Norwegian translations | ✅ |
 | 65 | feature/auth-and-discord | Auth helpers, Discord integration, parameter editor | ✅ |
 | 66 | feature/webhook-security | Secret token validation for HTTP Receiver | ✅ |
+| 67 | feature/forge-new-endpoints | Port new endpoints and features to forge/common | ✅ |
 
 ## Recent Commits (Eira Ecosystem)
 
@@ -189,3 +189,4 @@ eira-core/build/libs/Eira Core-neoforge-1.21.1-1.1.0.jar
 | 71d4ce6 | Phase 1-4: New endpoints, security, retry, eira-core module |
 | 6a33035 | Phase 5: Integrate Eira Core event publishing |
 | 241e167 | Add debug event subscribers to Eira Core |
+| b6b60eb | Port new endpoints and features to forge/common |
