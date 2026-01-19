@@ -7,6 +7,8 @@ import no.eira.relay.http.api.IHttpHandler;
 import no.eira.relay.platform.Services;
 import no.eira.relay.platform.config.GlobalParam;
 import no.eira.relay.utils.ParameterReader;
+import org.eira.core.api.EiraAPI;
+import org.eira.core.api.events.HttpReceivedEvent;
 import com.sun.net.httpserver.HttpExchange;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
@@ -129,6 +131,19 @@ public class HttpReceiverBlockHandler implements IHttpHandler {
                 }
             } else {
                 System.out.println("[EiraRelay] Server level is null, cannot process request");
+            }
+
+            // Publish event to Eira Core if available
+            final String endpoint = getUrl();
+            final String method = exchange.getRequestMethod();
+            try {
+                Map<String, String> allParams = ParameterReader.getAllParameters(exchange);
+                Map<String, Object> eventParams = new HashMap<>(allParams);
+                EiraAPI.ifPresent(api -> {
+                    api.events().publish(new HttpReceivedEvent(endpoint, method, eventParams));
+                });
+            } catch (Exception e) {
+                // Ignore event publishing errors
             }
 
             // Send success response

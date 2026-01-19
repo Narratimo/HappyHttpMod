@@ -9,6 +9,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import no.eira.relay.http.api.IHttpHandler;
+import org.eira.core.api.EiraAPI;
+import org.eira.core.api.events.RedstoneChangeEvent;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -60,6 +62,13 @@ public class RedstoneHandler implements IHttpHandler {
             emission.ticksRemaining--;
 
             if (emission.ticksRemaining <= 0) {
+                // Publish event before removal
+                final BlockPos eventPos = entry.getKey();
+                final int oldStrength = emission.strength;
+                EiraAPI.ifPresent(api -> {
+                    api.events().publish(new RedstoneChangeEvent(eventPos, oldStrength, 0));
+                });
+
                 it.remove();
                 // Notify neighbors that redstone changed
                 if (serverLevel != null) {
@@ -122,12 +131,18 @@ public class RedstoneHandler implements IHttpHandler {
         if (serverLevel != null && serverLevel.getServer() != null) {
             MinecraftServer server = serverLevel.getServer();
 
+            final int finalStrength = strength;
             server.execute(() -> {
-                activeEmissions.put(pos, new RedstoneEmission(strength, duration));
+                activeEmissions.put(pos, new RedstoneEmission(finalStrength, duration));
                 // Notify neighbors
                 serverLevel.updateNeighborsAt(pos, Blocks.REDSTONE_BLOCK);
                 System.out.println("[EiraRelay] Redstone emission started at " + pos +
-                    " (strength=" + strength + ", duration=" + duration + " ticks)");
+                    " (strength=" + finalStrength + ", duration=" + duration + " ticks)");
+
+                // Publish event to Eira Core if available
+                EiraAPI.ifPresent(api -> {
+                    api.events().publish(new RedstoneChangeEvent(pos, 0, finalStrength));
+                });
             });
 
             sendJsonResponse(exchange, 200, Map.of(

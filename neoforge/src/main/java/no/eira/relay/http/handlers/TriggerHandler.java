@@ -10,6 +10,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import no.eira.relay.block.HttpReceiverBlock;
 import no.eira.relay.blockentity.HttpReceiverBlockEntity;
 import no.eira.relay.http.api.IHttpHandler;
+import org.eira.core.api.EiraAPI;
+import org.eira.core.api.events.ExternalTriggerEvent;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -126,6 +128,16 @@ public class TriggerHandler implements IHttpHandler {
             if (request.teamId != null) response.put("teamId", request.teamId);
             if (request.playerId != null) response.put("playerId", request.playerId);
         }
+
+        // Publish event to Eira Core if available
+        final TriggerRequest finalRequest = request;
+        final String finalTriggerId = triggerId;
+        EiraAPI.ifPresent(api -> {
+            Map<String, Object> eventData = finalRequest != null && finalRequest.data != null
+                ? finalRequest.data
+                : new HashMap<>();
+            api.events().publish(new ExternalTriggerEvent("http-trigger", finalTriggerId, eventData));
+        });
 
         sendJsonResponse(exchange, 200, response);
         System.out.println("[EiraRelay] Trigger '" + triggerId + "' activated " + blocksTriggered + " block(s)");

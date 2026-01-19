@@ -69,6 +69,10 @@ runs {
 
 dependencies {
     implementation "net.neoforged:neoforge:${neoforge_version}"
+
+    // Eira Core - Optional dependency for cross-mod events
+    compileOnly project(":eira-core")
+    runtimeOnly project(":eira-core")
 }
 
 tasks.named("sourcesJar", Jar) {
