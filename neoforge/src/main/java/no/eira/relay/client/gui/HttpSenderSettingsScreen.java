@@ -7,6 +7,8 @@ import no.eira.relay.enums.EnumHttpMethod;
 import no.eira.relay.enums.EnumPoweredType;
 import no.eira.relay.enums.EnumTimerUnit;
 import no.eira.relay.network.packet.SUpdateHttpSenderValuesPacket;
+import no.eira.relay.templates.RequestTemplate;
+import no.eira.relay.templates.RequestTemplateRegistry;
 import no.eira.relay.utils.JsonUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -23,6 +25,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -34,7 +37,7 @@ public class HttpSenderSettingsScreen extends Screen {
     private static final Component METHOD_LABEL = Component.translatable("gui." + Constants.MOD_ID + ".method_label");
     private static final Component TEST_TEXT = Component.translatable("gui." + Constants.MOD_ID + ".test_button");
     private static final Component AUTH_LABEL = Component.translatable("gui." + Constants.MOD_ID + ".auth_label");
-    private static final Component DISCORD_TEXT = Component.translatable("gui." + Constants.MOD_ID + ".discord_button");
+    private static final Component TEMPLATE_TEXT = Component.translatable("gui." + Constants.MOD_ID + ".template_button");
     private static final Component PARAMS_LABEL = Component.translatable("gui." + Constants.MOD_ID + ".params_label");
     private static final Component ADD_TEXT = Component.translatable("gui." + Constants.MOD_ID + ".add_button");
     private static final Component CLEAR_TEXT = Component.translatable("gui." + Constants.MOD_ID + ".clear_button");
@@ -50,7 +53,9 @@ public class HttpSenderSettingsScreen extends Screen {
 
     private Button saveButton;
     private Button testButton;
-    private Button discordButton;
+    private Button templateButton;
+    private int templateIndex = 0;
+    private List<RequestTemplate> templates;
     private EditBox urlInput;
     private CycleButton<EnumHttpMethod> methodButton;
     private Button powerModeButton;
@@ -250,9 +255,10 @@ public class HttpSenderSettingsScreen extends Screen {
                 .build()
         );
 
-        // Discord preset button
-        this.discordButton = addRenderableWidget(Button.builder(
-                DISCORD_TEXT, this::handleDiscordButton)
+        // Template preset button
+        this.templates = RequestTemplateRegistry.getAll();
+        this.templateButton = addRenderableWidget(Button.builder(
+                TEMPLATE_TEXT, this::handleTemplateButton)
                 .bounds(leftPos + 160, topPos + 235, 80, 20)
                 .build()
         );
@@ -358,18 +364,50 @@ public class HttpSenderSettingsScreen extends Screen {
         updateAuthVisibility();
     }
 
-    private void handleDiscordButton(Button button) {
-        // Set method to POST (required for Discord webhooks)
-        this.httpMethod = EnumHttpMethod.POST;
-        this.methodButton.setValue(EnumHttpMethod.POST);
+    private void handleTemplateButton(Button button) {
+        if (templates.isEmpty()) {
+            testResult = "No templates available";
+            testResultColor = 0xFFFF55;
+            return;
+        }
 
-        // Discord webhooks don't need auth (URL contains token)
-        this.authType = EnumAuthType.NONE;
+        // Cycle to next template
+        templateIndex = (templateIndex + 1) % (templates.size() + 1);
+
+        if (templateIndex == 0) {
+            // "None" option - don't change anything
+            testResult = "Template: None";
+            testResultColor = 0xAAAAAA;
+            return;
+        }
+
+        // Apply selected template
+        RequestTemplate template = templates.get(templateIndex - 1);
+        applyTemplate(template);
+    }
+
+    private void applyTemplate(RequestTemplate template) {
+        // Set URL pattern (user will need to fill in placeholders)
+        this.urlText = template.getUrlPattern();
+        this.urlInput.setValue(this.urlText);
+
+        // Set HTTP method
+        this.httpMethod = template.getMethod();
+        this.methodButton.setValue(this.httpMethod);
+
+        // Set auth type
+        this.authType = template.getAuthType();
         this.authTypeButton.setMessage(this.authType.getComponent());
         updateAuthVisibility();
 
-        // Show hint
-        testResult = "Set to POST. Add 'content' parameter for message.";
+        // Set default parameters
+        this.parameterMap = new HashMap<>(template.getDefaultParameters());
+
+        // Show confirmation with helpful message
+        String hint = template.hasPlaceholders()
+            ? "Fill in {placeholders} in URL"
+            : "Template applied";
+        testResult = template.getName() + ": " + hint;
         testResultColor = 0x55FFFF;
     }
 
