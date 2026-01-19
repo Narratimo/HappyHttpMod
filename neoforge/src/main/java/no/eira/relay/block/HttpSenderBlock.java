@@ -5,6 +5,7 @@ import no.eira.relay.network.packet.CHttpSenderOpenGuiPacket;
 import no.eira.relay.registry.ModBlockEntities;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
@@ -30,10 +31,13 @@ public class HttpSenderBlock extends Block implements EntityBlock {
 
     public static final MapCodec<HttpSenderBlock> CODEC = simpleCodec(HttpSenderBlock::new);
     public static final BooleanProperty LIT = RedstoneTorchBlock.LIT;
+    public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
     public HttpSenderBlock(Properties properties) {
         super(properties);
-        this.registerDefaultState(this.defaultBlockState().setValue(LIT, Boolean.FALSE));
+        this.registerDefaultState(this.defaultBlockState()
+                .setValue(LIT, Boolean.FALSE)
+                .setValue(ACTIVE, Boolean.FALSE));
     }
 
     @Override
@@ -63,10 +67,37 @@ public class HttpSenderBlock extends Block implements EntityBlock {
     }
 
     private void onPowered(Level level, BlockPos pos) {
+        // Spawn particles for visual feedback
+        spawnSenderParticles(level, pos);
+        // Set active state
+        setActive(level, pos, true);
+
         if (level.getBlockEntity(pos) instanceof HttpSenderBlockEntity entity) {
             entity.onPowered();
         }
         level.scheduleTick(pos, this, 4);
+    }
+
+    public void setActive(Level level, BlockPos pos, boolean active) {
+        BlockState state = level.getBlockState(pos).setValue(ACTIVE, active);
+        level.setBlock(pos, state, 3);
+    }
+
+    public void spawnSenderParticles(Level level, BlockPos pos) {
+        if (level instanceof ServerLevel serverLevel) {
+            double x = pos.getX() + 0.5;
+            double y = pos.getY() + 0.5;
+            double z = pos.getZ() + 0.5;
+
+            // Blue soul particles for sending HTTP request
+            serverLevel.sendParticles(
+                    ParticleTypes.SOUL,
+                    x, y, z,
+                    10,           // count
+                    0.3, 0.3, 0.3, // spread
+                    0.02          // speed
+            );
+        }
     }
 
     @Nullable
@@ -98,7 +129,7 @@ public class HttpSenderBlock extends Block implements EntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(LIT);
+        builder.add(LIT, ACTIVE);
     }
 
     @Nullable

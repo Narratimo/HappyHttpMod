@@ -19,6 +19,9 @@ public class HttpReceiverBlockEntity extends BlockEntity {
     private long lastPoweredTick;
     private final Values values;
     private boolean isPowerOn;
+    private boolean isActive;
+    private long activeStartTick;
+    private static final int ACTIVE_DURATION_TICKS = 10;
 
     public HttpReceiverBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.httpReceiverBlockEntity.get().get(), pos, state);
@@ -26,9 +29,27 @@ public class HttpReceiverBlockEntity extends BlockEntity {
     }
 
     public void onSignal() {
+        setActiveState(true);
         switch (values.poweredType) {
             case SWITCH -> this.switchPowered();
             case TIMER -> this.startTimer();
+        }
+    }
+
+    public void setActiveState(boolean active) {
+        this.isActive = active;
+        if (active && this.level != null) {
+            this.activeStartTick = this.level.getGameTime();
+        }
+        updateBlockActiveState(active);
+    }
+
+    private void updateBlockActiveState(boolean active) {
+        if (this.level == null || this.level.isClientSide) return;
+        BlockState state = this.level.getBlockState(this.getBlockPos());
+        Block block = state.getBlock();
+        if (block instanceof HttpReceiverBlock receiver) {
+            receiver.setActive(state, this.level, this.getBlockPos(), active);
         }
     }
 
@@ -59,6 +80,15 @@ public class HttpReceiverBlockEntity extends BlockEntity {
 
     public void tick() {
         if (this.level == null || this.level.isClientSide) return;
+
+        // Check active state timeout
+        if (isActive) {
+            long currentTick = this.level.getGameTime();
+            if (currentTick - activeStartTick >= ACTIVE_DURATION_TICKS) {
+                setActiveState(false);
+            }
+        }
+
         if (!this.values.poweredType.equals(EnumPoweredType.TIMER)) return;
 
         switch (this.values.timerUnit) {

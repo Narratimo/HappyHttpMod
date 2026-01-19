@@ -21,6 +21,11 @@ public class HttpReceiverBlockEntity extends BlockEntity {
     private final Values values;
     private boolean isPowerOn;
 
+    // Active state tracking for visual feedback
+    private boolean isActive;
+    private long activeStartTick;
+    private static final int ACTIVE_DURATION_TICKS = 10; // Half second visual feedback
+
     public HttpReceiverBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.httpReceiverBlockEntity.get().get(), pos, state);
         this.values = new Values();
@@ -58,8 +63,31 @@ public class HttpReceiverBlockEntity extends BlockEntity {
         }
     }
 
+    public void setActiveState(boolean active) {
+        this.isActive = active;
+        if (active && this.level != null) {
+            this.activeStartTick = this.level.getGameTime();
+        }
+        updateBlockActiveState(active);
+    }
+
+    private void updateBlockActiveState(boolean active) {
+        if (this.level != null && !this.level.isClientSide) {
+            BlockState state = this.level.getBlockState(this.getBlockPos());
+            if (state.getBlock() instanceof HttpReceiverBlock receiver) {
+                receiver.setActive(state, this.level, this.getBlockPos(), active);
+            }
+        }
+    }
+
     public void tick() {
         if (this.level == null || this.level.isClientSide) return;
+
+        // Handle active state timeout
+        if (isActive && this.level.getGameTime() - activeStartTick > ACTIVE_DURATION_TICKS) {
+            setActiveState(false);
+        }
+
         if (!this.values.poweredType.equals(EnumPoweredType.TIMER)) return;
 
         switch (this.values.timerUnit) {
