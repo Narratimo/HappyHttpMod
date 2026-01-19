@@ -181,6 +181,7 @@ eira-core/build/libs/Eira Core-neoforge-1.21.1-1.1.0.jar
 | 66 | feature/webhook-security | Secret token validation for HTTP Receiver | ✅ |
 | 67 | feature/forge-new-endpoints | Port new endpoints and features to forge/common | ✅ |
 | 68 | feature/visual-connection-cues | Visual connection cues (particles, active state) | ✅ |
+| 69 | feature/auth-ux-improvements | Auth UX: masked fields, copy/generate buttons | ✅ |
 
 ## Recent Commits (Eira Ecosystem)
 
