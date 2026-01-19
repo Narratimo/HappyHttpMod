@@ -30,4 +30,22 @@ public interface IHttpClient {
      * @return CompletableFuture with response body
      */
     CompletableFuture<String> sendGetWithRetry(String url, String parameters, Map<String, String> headers);
+
+    /**
+     * Send POST request with automatic retry, returning full result with status code.
+     * @param url Target URL
+     * @param parameters JSON body
+     * @param headers Custom headers
+     * @return CompletableFuture with HttpResult containing status code and body
+     */
+    CompletableFuture<HttpResult> sendPostWithResult(String url, String parameters, Map<String, String> headers);
+
+    /**
+     * Send GET request with automatic retry, returning full result with status code.
+     * @param url Target URL
+     * @param parameters Query string parameters
+     * @param headers Custom headers
+     * @return CompletableFuture with HttpResult containing status code and body
+     */
+    CompletableFuture<HttpResult> sendGetWithResult(String url, String parameters, Map<String, String> headers);
 }

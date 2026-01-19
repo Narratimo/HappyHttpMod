@@ -174,4 +174,15 @@ public class HttpReceiverBlock extends Block implements EntityBlock {
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return ModBlockEntities.httpReceiverBlockEntity.get().get().create(pos, state);
     }
+
+    @Override
+    protected boolean hasAnalogOutputSignal(BlockState state) {
+        return true;
+    }
+
+    @Override
+    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+        // Output 15 when powered (request received), 0 otherwise
+        return state.getValue(POWERED) ? 15 : 0;
+    }
 }
