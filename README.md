@@ -1,264 +1,308 @@
-# Eira Relay - Minecraft HTTP Automation Mod
+# Eira Relay
 
-Eira Relay enables you to create adventures that bridge the physical world and the Minecraft world. Each world can trigger events in the other. **The project is maintained by [Eira](https://www.eira.no)**, a non-commercial organization focused on teaching kids and teenagers to code and learn technology.
+A Minecraft mod that bridges in-game events with external HTTP systems. Trigger redstone from webhooks, send HTTP requests from redstone, and build interactive experiences that connect the physical and virtual worlds.
 
-This Minecraft mod introduces custom blocks and HTTP endpoints that interact with webhooks and HTTP requests, enabling powerful integrations and automations both within and outside the Minecraft world.
+Maintained by [Eira](https://www.eira.no), a non-commercial organisation teaching young people to code.
 
-![Screenshot 2024-06-12 155630](https://github.com/clapters/HappyHttpMod/assets/128842272/59fcf0e0-b03a-4e82-ba70-7696e9f79b77)
+## Project Status
 
-## Table of Contents
+**Current version:** 1.1.0
+**Lifecycle stage:** Beta - actively maintained, core features stable
+**Platforms:** NeoForge 1.21.1, NeoForge 1.21.4, Forge 1.20.2
 
-- [Introduction](#introduction)
-- [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
-- [HTTP Endpoints](#http-endpoints)
-- [Configuration](#configuration)
-- [Security](#security)
-- [Contributing](#contributing)
-- [License](#license)
+The mod is functional for production use cases but lacks some polish features. Breaking changes are unlikely but possible before 1.0 stable release.
 
-## Introduction
+## Why This Project Exists
 
-**Eira Relay** allows you to connect your Minecraft world to your external world using HTTP requests. Use it with home automation, QR codes, sensors, Discord webhooks, and more. Let your imagination run wild!
+Existing Minecraft automation mods focus on in-game mechanics. Eira Relay fills a gap: connecting Minecraft to external systems without requiring programming knowledge.
 
-**Example use cases:**
-- Open a secret door in Minecraft when a QR code is scanned
-- Trigger redstone circuits from motion sensors
-- Send Discord notifications when players reach checkpoints
-- Control smart home devices from in-game buttons
-- Create interactive scavenger hunts with real-world triggers
+**Use cases we designed for:**
+- Educational escape rooms where QR codes trigger in-game events
+- Home automation integration (lights, doors, sensors)
+- Discord/Slack notifications from in-game achievements
+- Interactive museum exhibits with physical triggers
+- Team-based scavenger hunts with checkpoint tracking
 
-## Features
+**Design principles:**
+- Configuration over code - all setup via in-game GUI
+- Security by default - localhost binding, token authentication
+- Builder-friendly - visual feedback, clear error messages
 
-### Blocks
+## Core Features
 
-| Block | Purpose |
-|-------|---------|
-| **HTTP Receiver** | Emits redstone signal when webhook is triggered |
-| **HTTP Sender** | Sends HTTP requests when powered by redstone |
+| Feature | Description |
+|---------|-------------|
+| **HTTP Receiver Block** | Listens for webhooks, emits redstone signal |
+| **HTTP Sender Block** | Sends HTTP requests when powered |
+| **Power Modes** | Toggle (switch) or pulse (timer with configurable duration) |
+| **Authentication** | Bearer, Basic, Custom headers for outgoing requests |
+| **Secret Tokens** | Protect receiver endpoints with token validation |
+| **Visual Feedback** | Particles and glow effects indicate block activity |
+| **Built-in Endpoints** | `/trigger/{id}`, `/status`, `/redstone`, `/broadcast` |
+| **Player Detection** | Detect nearby players when receiver is triggered |
 
-### Core Capabilities
+### What This Project Does Not Do
 
-- **Power Modes**: Switch (toggle) or Timer (pulse for configurable duration)
-- **Authentication**: Bearer tokens, Basic auth, Custom headers for outgoing requests
-- **Secret Token Validation**: Protect receivers with token authentication
-- **Visual Feedback**: Particles and glow effects when blocks are active
-- **Discord Integration**: One-click preset for Discord webhook setup
-- **Global Parameters**: Server-wide parameters applied to all requests
-- **Test Button**: Verify sender configuration without redstone
-- **Rate Limiting**: Configurable request limits per IP (disabled by default)
-- **CORS Support**: Cross-origin requests for web integrations
+- **No in-game scripting** - Use external tools for complex logic
+- **No persistent state** - Stateless by design; use Eira Server for game state
+- **No cross-server sync** - Single server only
+- **No Fabric support** - Paused indefinitely
 
-### HTTP Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/trigger/{id}` | POST | Named triggers for QR codes, sensors |
-| `/status` | GET | Health check with uptime and version |
-| `/redstone` | POST | Emit redstone signal at coordinates |
-| `/broadcast` | POST | Send chat, title, or actionbar messages |
-| `/{custom}` | POST | Custom endpoints from Receiver blocks |
-
-### Platform Support
-
-| Platform | Minecraft | Status |
-|----------|-----------|--------|
-| **NeoForge** | 1.21.1 | Active |
-| **Forge** | 1.20.2 | Active |
-
-## Installation
+## Quick Start
 
 ### Requirements
-
-- Minecraft with NeoForge 1.21.1 or Forge 1.20.2
+- Minecraft with NeoForge 1.21.1+ or Forge 1.20.2
 - Java 21 (NeoForge) or Java 17 (Forge)
 
-### Steps
+### Installation
+1. Download from [Releases](https://github.com/Narratimo/HappyHttpMod/releases)
+2. Place `.jar` in your `mods` folder
+3. Launch Minecraft with the mod loader
 
-1. **Download the Mod** from [Releases](https://github.com/Narratimo/HappyHttpMod/releases)
+### Minimal Example
 
-2. **Install Mod Loader**:
-   - NeoForge: [neoforged.net](https://neoforged.net/)
-   - Forge: [files.minecraftforge.net](https://files.minecraftforge.net/)
+**Receive a webhook:**
+1. Place HTTP Receiver block, right-click to configure
+2. Set endpoint: `/door`
+3. Connect redstone to a piston door
+4. Trigger: `curl -X POST http://localhost:8080/door`
 
-3. **Add to Minecraft**:
-   - Place the `.jar` file in your `mods` folder
-   - Launch with the appropriate mod loader profile
+**Send a webhook:**
+1. Place HTTP Sender block, right-click to configure
+2. Set URL: `https://discord.com/api/webhooks/...`
+3. Set method: POST, add parameter `content` = `Player reached checkpoint!`
+4. Power with redstone button
 
-## Usage
+## Usage Overview
 
 ### HTTP Receiver Block
+Receives POST requests and outputs redstone signal.
 
-Listens for incoming HTTP requests and emits a redstone signal.
-
-![reciever](https://github.com/clapters/HappyHttpMod/assets/128842272/9c3c15d5-357c-4c22-b073-bd78d8bf8872)
-
-**Setup:**
-1. Place the block and right-click (creative mode) to configure
-2. Set the endpoint URL (e.g., `/secret/door`)
-3. Choose power mode:
-   - **Switch**: Toggles on/off with each request
-   - **Timer**: Pulses for a set duration (ticks or seconds)
-4. (Optional) Set a secret token for authentication
-5. Connect redstone to your mechanism
-
-**Triggering:**
 ```bash
-# Basic request
-curl -X POST http://localhost:8080/secret/door
+# Basic trigger
+curl -X POST http://localhost:8080/your-endpoint
 
-# With secret token (header)
-curl -X POST http://localhost:8080/secret/door \
+# With authentication
+curl -X POST http://localhost:8080/your-endpoint \
   -H "Authorization: Bearer your-secret-token"
-
-# With secret token (query parameter)
-curl -X POST "http://localhost:8080/secret/door?token=your-secret-token"
 ```
 
-### HTTP Sender Block
-
-Sends HTTP requests when powered by redstone.
-
-![sender](https://github.com/clapters/HappyHttpMod/assets/128842272/611827f1-b15a-46ef-b44b-bb3de7673dae)
-
-**Setup:**
-1. Place the block and right-click (creative mode) to configure
-2. Set the target URL
-3. Choose HTTP method (GET or POST)
-4. Configure parameters (key-value pairs)
-5. (Optional) Set authentication:
-   - **Bearer**: Token-based auth
-   - **Basic**: Username:password
-   - **Custom Header**: Any header name/value
-6. Choose power mode (Switch or Timer cooldown)
-7. Use the **Test** button to verify configuration
-8. Connect redstone input (button, lever, pressure plate, etc.)
-
-**Discord Integration:**
-1. Click the **Discord** button for webhook preset
-2. Paste your Discord webhook URL
-3. Add a `content` parameter with your message
-4. Power with redstone to send messages to Discord!
-
-## HTTP Endpoints
-
-### `/trigger/{id}` - Named Triggers
-
-Trigger named events for QR codes, sensors, or external systems.
-
-```bash
-curl -X POST http://localhost:8080/trigger/checkpoint1
-```
-
-### `/status` - Health Check
-
-Get server status, uptime, and version info.
-
-```bash
-curl http://localhost:8080/status
-```
-
-Response:
+**Response format (JSON):**
 ```json
 {
   "status": "ok",
-  "mod": "Eira Relay",
-  "version": "1.1.0",
-  "uptime": 3600
+  "message": "Signal sent to 1 block(s)",
+  "blocks": [
+    {"x": 100, "y": 64, "z": 200, "player": {"uuid": "...", "name": "Steve", "distance": 3.5}}
+  ]
 }
 ```
 
-### `/redstone` - Remote Redstone
+### HTTP Sender Block
+Sends requests when powered by redstone.
 
-Emit a redstone signal at specific coordinates.
+- **GET**: Parameters appended as query string
+- **POST**: Parameters sent as JSON body
+- **Auth types**: None, Bearer, Basic (user:pass), Custom header
 
-```bash
-curl -X POST http://localhost:8080/redstone \
-  -H "Content-Type: application/json" \
-  -d '{"x": 100, "y": 64, "z": 200, "strength": 15, "duration": 20}'
-```
+### Built-in Endpoints
 
-### `/broadcast` - Messages
-
-Send messages to all players.
-
-```bash
-# Chat message
-curl -X POST http://localhost:8080/broadcast \
-  -H "Content-Type: application/json" \
-  -d '{"message": "Hello everyone!", "type": "chat"}'
-
-# Title
-curl -X POST http://localhost:8080/broadcast \
-  -d '{"message": "Welcome!", "type": "title"}'
-
-# Actionbar
-curl -X POST http://localhost:8080/broadcast \
-  -d '{"message": "Press E to continue", "type": "actionbar"}'
-```
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/trigger/{id}` | POST | Named triggers for QR codes, sensors |
+| `/status` | GET | Health check with uptime and version |
+| `/redstone` | POST | Emit redstone at coordinates `{"x":0,"y":64,"z":0}` |
+| `/broadcast` | POST | Send chat/title/actionbar to players |
 
 ## Configuration
 
-Configuration file location: `.minecraft/config/eirarelay-common.toml`
+File: `.minecraft/config/eirarelay-common.toml`
 
 ```toml
 [server]
-# HTTP server port
 port = 8080
-
-# Bind address (localhost for security, 0.0.0.0 for all interfaces)
-bind_address = "127.0.0.1"
-
-# Rate limiting (requests per minute per IP, 0 = disabled)
-rate_limit = 0
-
-# CORS allowed origins (comma-separated, empty = disabled)
-cors_origins = ""
-
-[global_params]
-# Parameters added to all outgoing requests
-# param1 = "value1"
+bind_address = "127.0.0.1"  # Use "0.0.0.0" for external access
+rate_limit = 0              # Requests per minute per IP (0 = disabled)
+cors_origins = ""           # Comma-separated origins (empty = disabled)
 ```
 
-## Security
+## Architecture Overview
 
-### Recommendations
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Eira Relay Mod                       │
+├─────────────────────────────────────────────────────────┤
+│  HTTP Server (com.sun.net.httpserver)                   │
+│    ├── /trigger/{id}  → TriggerHandler                  │
+│    ├── /status        → StatusHandler                   │
+│    ├── /redstone      → RedstoneHandler                 │
+│    ├── /broadcast     → BroadcastHandler                │
+│    └── /{custom}      → HttpReceiverBlockHandler        │
+├─────────────────────────────────────────────────────────┤
+│  Blocks                                                 │
+│    ├── HttpReceiverBlock  → receives HTTP, emits signal │
+│    └── HttpSenderBlock    → receives signal, sends HTTP │
+├─────────────────────────────────────────────────────────┤
+│  HTTP Client (java.net.http)                            │
+│    └── Async requests with retry logic                  │
+├─────────────────────────────────────────────────────────┤
+│  Eira Core (optional dependency)                        │
+│    └── Event bus for cross-mod communication            │
+└─────────────────────────────────────────────────────────┘
+```
 
-1. **Keep localhost binding** unless you need external access
-2. **Use secret tokens** on Receiver blocks exposed to the internet
-3. **Enable rate limiting** for public-facing endpoints
-4. **Use authentication** on Sender blocks for sensitive APIs
-
-### Port Forwarding
-
-To allow external access:
-1. Configure your router to forward port 8080 (or your configured port)
-2. Set `bind_address = "0.0.0.0"` in config
-3. Use secret tokens on all Receiver blocks
-4. Consider using a reverse proxy (nginx, Cloudflare) for additional security
-
-## Contributing
-
-We welcome contributions!
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-[Join our Discord server](https://discord.gg/DVuQSV27pa)
-
-## Support
-
-- **Issues**: [GitHub Issues](https://github.com/Narratimo/HappyHttpMod/issues)
-- **Discord**: [Join our server](https://discord.gg/DVuQSV27pa)
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+**Extension points:**
+- Custom `IHttpHandler` implementations for new endpoints
+- Event subscribers via Eira Core API
+- Block entity subclasses for specialised behaviour
 
 ---
 
-Enjoy automating your Minecraft world with Eira Relay!
+## Roadmap
+
+### Completed Features
+
+| Feature | PR | Status |
+|---------|-----|--------|
+| HTTP Receiver/Sender blocks | - | Done |
+| Power modes (Switch/Timer) | #54, #60 | Done |
+| Authentication (Bearer/Basic/Custom) | #65 | Done |
+| Secret token validation | #66 | Done |
+| Visual feedback (particles, glow) | #68 | Done |
+| Built-in endpoints (/trigger, /status, /redstone, /broadcast) | #67 | Done |
+| Rate limiting and CORS | #67 | Done |
+| Discord webhook preset | #65 | Done |
+| Norwegian translations | #64 | Done |
+| Test button for sender | #63 | Done |
+| NeoForge 1.21.4 support | #73 | Done |
+| Eira Core integration | #71, #72 | Done |
+| Player detection on triggers | #94 | Done |
+
+### In Progress (Phase 2)
+
+| Feature | Issue | Description |
+|---------|-------|-------------|
+| Response Variables | #76 | Parse API responses, store values, use in subsequent requests |
+| Comparator Output | #77 | Analog redstone signal based on HTTP response status |
+| Visual Wiring Preview | #79 | Debug overlay showing block connections |
+| Request Templates | #81 | Save/load block configurations as presets |
+
+### Planned (Phase 3)
+
+| Feature | Issue | Priority | Description |
+|---------|-------|----------|-------------|
+| WebSocket Support | #80 | High | Real-time bidirectional communication |
+| Scheduled Requests | #82 | High | Time-based periodic HTTP triggers |
+| Data Flow in Sequences | #83 | Medium | Pass response data between Scene Sequencer steps |
+| Conditional Logic Block | #84 | Medium | Make redstone decisions based on API responses |
+| Batch/Multicast Sender | #85 | Medium | Send to multiple endpoints simultaneously |
+| Audio Integration | #86 | Low | Play sounds from HTTP triggers |
+
+### Future Vision (Phase 4+)
+
+| Feature | Issue | Description |
+|---------|-------|-------------|
+| Mobile Companion App | #87 | Trigger endpoints from phone |
+| Eira Hub Cloud Relay | #88 | Easy internet access without port forwarding |
+| Integration Marketplace | #89 | Community-shared presets for common services |
+| Visual Flow Builder | #90 | Drag-and-drop sequence designer |
+
+### Additional Features Under Consideration
+
+| Feature | Rationale |
+|---------|-----------|
+| **Redstone Detector Block** | Publish events when redstone changes (for Eira Core subscribers) |
+| **HTTP Filter Block** | Validate/transform incoming requests before triggering |
+| **Relay Controller Block** | Central hub GUI for managing multiple triggers |
+| **Webhook History/Logs** | Per-block request history for debugging |
+| **Response Routing** | Route different HTTP responses to different redstone outputs |
+| **mDNS/Bonjour Discovery** | Auto-discover Eira Relay instances on local network |
+| **Prometheus Metrics** | Expose metrics for monitoring dashboards |
+
+---
+
+## Tech Debt, Bugs, and Unfinished Work
+
+### Known Issues
+
+| Issue | Severity | Description |
+|-------|----------|-------------|
+| Javadoc warnings | Low | ~100 missing Javadoc comments on public APIs |
+| Handler cleanup race | Medium | Block removal during HTTP request can cause orphan handlers |
+| No request timeout config | Medium | HTTP client uses hardcoded 30s timeout |
+| Scene Sequencer GUI overflow | Low | Long step lists can overflow the GUI panel |
+
+### Technical Debt
+
+| Area | Description | Effort |
+|------|-------------|--------|
+| **Forge parity** | Forge module missing: player detection, Scene Sequencer, new endpoints | High |
+| **Fabric module** | Incomplete implementation, disabled indefinitely | High |
+| **Test coverage** | No automated tests; manual testing only | High |
+| **Error handling** | Some HTTP errors swallowed silently | Medium |
+| **GUI code duplication** | Sender/Receiver screens share similar logic | Medium |
+| **Magic numbers** | Hardcoded values (timeouts, limits) should be configurable | Low |
+| **Unused Player import** | `PlayerDetector.java` imports unused `Player` class | Trivial |
+
+### Incomplete Features
+
+| Feature | Status | What's Missing |
+|---------|--------|----------------|
+| Redstone patterns (pulse, fade, SOS) | Planned | Not started |
+| Multiple API keys | Planned | Not started |
+| Per-block rate limiting | Issue #32 | Not started |
+| Request validation/filtering | Issue #29 | Not started |
+
+---
+
+## Contributing
+
+Contributions are welcome. Before starting significant work, open an issue to discuss the approach.
+
+**What we're looking for:**
+- Bug fixes with clear reproduction steps
+- Features from the roadmap (check issues first)
+- Documentation improvements
+- Translations (see `lang/` folder structure)
+
+**Code expectations:**
+- Follow existing patterns in the codebase
+- Test builds pass (`./gradlew :neoforge:build`)
+- One feature per PR
+- Update relevant documentation
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
+## Governance
+
+**Maintainer:** [Eira](https://www.eira.no) development team
+
+**Decision process:**
+- Issues discuss features before implementation
+- PRs require review before merge
+- Breaking changes require maintainer approval
+- Roadmap priorities set by maintainers based on educational use cases
+
+**Roadmap location:** This README (above) and [GitHub Issues](https://github.com/Narratimo/HappyHttpMod/issues)
+
+## Licence
+
+MIT License. See [LICENSE](LICENSE) for full text.
+
+**Usage expectations:** This mod is designed for educational and creative purposes. We ask that you not use it for malicious purposes (DDoS, spam, harassment).
+
+## Community and Support
+
+- **Issues:** [GitHub Issues](https://github.com/Narratimo/HappyHttpMod/issues) for bugs and feature requests
+- **Discord:** [Join our server](https://discord.gg/DVuQSV27pa) for questions and discussion
+- **Response time:** We aim to respond within a week; faster for security issues
+
+---
+
+## Closing Note
+
+Eira Relay exists because we wanted to build interactive experiences for young people that connect the digital and physical worlds. We believe the best way to learn technology is to build things that feel magical.
+
+If you're building something creative with this mod, we'd love to hear about it.
+
+*— The Eira Team*

@@ -11,18 +11,18 @@
 | **Mod Name** | Eira Relay |
 | **Mod ID** | `eirarelay` |
 | **Package** | `no.eira.relay` |
-| **Status** | ✅ Multi-version support |
+| **Status** | Beta - actively maintained |
 
 ### Multi-Version Architecture
 
 | Module | MC Version | Java | Status |
 |--------|------------|------|--------|
-| **neoforge** | 1.21.1 | 21 | ✅ Active - Full features |
-| **neoforge-1.21.4** | 1.21.4 | 21 | ✅ Active - Full features |
-| **forge** | 1.20.2 | 17 | ✅ Active - Full features |
-| **common** | 1.20.2 | 17 | ✅ Shared code for forge |
-| **eira-core** | 1.21.1 | 21 | ✅ Eira Core library mod |
-| **fabric** | 1.20.2 | 17 | ⏸️ Disabled - Incomplete |
+| **neoforge** | 1.21.1 | 21 | Active - Full features |
+| **neoforge-1.21.4** | 1.21.4 | 21 | Active - Full features |
+| **forge** | 1.20.2 | 17 | Active - Missing recent features |
+| **common** | 1.20.2 | 17 | Shared code for forge |
+| **eira-core** | 1.21.1 | 21 | Eira Core library mod |
+| **fabric** | 1.20.2 | 17 | Disabled - Incomplete |
 
 ## Quick Start
 
@@ -58,7 +58,7 @@ EiraRelay/
 │       ├── registry/            # ModBlocks, ModItems, ModBlockEntities
 │       ├── enums/               # EnumHttpMethod, EnumPoweredType, EnumTimerUnit
 │       ├── mixin/               # Client mixins
-│       └── utils/               # JsonUtils, NBTConverter, QueryBuilder
+│       └── utils/               # JsonUtils, NBTConverter, QueryBuilder, PlayerDetector
 ├── neoforge-1.21.4/             # NeoForge 1.21.4 / Java 21 (ACTIVE)
 │   └── src/main/java/no/eira/relay/  # Same structure as neoforge/
 ├── eira-core/                   # Eira Core library mod (NeoForge 1.21.1 / Java 21)
@@ -72,46 +72,6 @@ EiraRelay/
 └── docs/                        # Documentation
 ```
 
-## Core Features
-
-### HTTP Receiver Block
-- Listens for incoming HTTP POST requests
-- Emits redstone signal (strength 15) when triggered
-- Configurable endpoint URL
-- Handler cleanup on block removal
-
-### HTTP Sender Block
-- Sends HTTP GET/POST requests on redstone signal
-- Configurable URL, method, and parameters
-- JSON body for POST, query string for GET
-
-### HTTP Server
-- Embedded `com.sun.net.httpserver.HttpServer`
-- Binds to localhost (127.0.0.1) by default for security
-- Configurable port (default: 8080)
-- Handler registration with URL mapping
-- Rate limiting (configurable, disabled by default)
-- CORS support (configurable, disabled by default)
-
-### HTTP Endpoints
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/trigger/{id}` | POST | Named triggers for QR codes/sensors |
-| `/status` | GET | Health check with uptime, version |
-| `/redstone` | POST | Emit redstone at coordinates |
-| `/broadcast` | POST | Send chat/title/actionbar messages |
-
-### Eira Core (Library Mod)
-- Shared event bus for cross-mod communication
-- Thread-safe publish/subscribe pattern
-- Event types: HttpReceived, ExternalTrigger, RedstoneChange, ServerCommand, CheckpointCompleted
-- Teams API: Create/manage teams, track membership and progress
-- Players API: Track player progress and data
-- Stories API: Chapter progression, secrets, conversation history
-- Adventures API: Checkpoint-based experiences with team/solo modes
-- Debug subscribers log events at DEBUG level for troubleshooting
-- Eira Relay publishes events automatically when eira-core is present
-
 ## Key Files
 
 ### Eira Relay (neoforge/)
@@ -122,26 +82,8 @@ EiraRelay/
 | `Constants.java` | MOD_ID = "eirarelay", MOD_NAME = "Eira Relay" |
 | `HttpServerImpl.java` | HTTP server with rate limiting, CORS |
 | `HttpClientImpl.java` | HTTP client with retry support |
-| `TriggerHandler.java` | /trigger/{id} endpoint |
-| `StatusHandler.java` | /status health check |
-| `RedstoneHandler.java` | /redstone emission |
-| `BroadcastHandler.java` | /broadcast messages |
-| `RateLimiter.java` | Per-IP rate limiting |
-
-### Eira Core (eira-core/)
-| File | Purpose |
-|------|---------|
-| `EiraCore.java` | Mod entry point |
-| `EiraAPI.java` | Public API interface |
-| `EiraEventBus.java` | Event bus interface |
-| `SimpleEventBus.java` | Thread-safe event bus implementation |
-
-## Build Output
-
-```
-neoforge/build/libs/Eira Relay-neoforge-1.21.1-1.1.0.jar
-eira-core/build/libs/Eira Core-neoforge-1.21.1-1.1.0.jar
-```
+| `HttpReceiverBlockHandler.java` | Custom endpoint handler with player detection |
+| `PlayerDetector.java` | Find players near block positions |
 
 ## Workflow Rules
 
@@ -160,46 +102,208 @@ eira-core/build/libs/Eira Core-neoforge-1.21.1-1.1.0.jar
 | `refactor/*` | Code refactoring |
 | `docs/*` | Documentation updates |
 
-## Next Actions
-
-### Phase 6: Eira Server (Future)
-- Create separate Node.js repository for game/checkpoint management
-- REST API for game state, teams, and players
-
-### Deferred
-- Complete Fabric module
+---
 
 ## Completed PRs
 
 | PR# | Branch | Description | Status |
 |-----|--------|-------------|--------|
-| 53 | refactor/rename-eira-relay | Rename to Eira Relay | ✅ |
-| 54 | feature/power-modes | Power modes (Toggle/Timer) | ✅ |
-| 55 | refactor/rename-common-forge-fabric-packages | Rename packages in common/forge/fabric | ✅ |
-| 56 | feature/port-modules-mc-1.21.1 | Enable multi-version builds | ✅ |
-| 57 | feature/forge-http-sender | HTTP Sender for forge/common | ✅ |
-| 58 | feature/forge-power-modes | Power modes for forge/common | ✅ |
-| 59 | fix/common-translations | Fix translation file for forge | ✅ |
-| 60 | feature/sender-power-modes | Power modes for HTTP Sender | ✅ |
-| 61 | feature/global-variables | Global variables | ✅ |
-| 62 | feature/port-binding-helper | Port/IP info in Receiver settings | ✅ |
-| 63 | feature/inline-testing | Test button for HTTP Sender | ✅ |
-| 64 | feature/norwegian-translations | Norwegian translations | ✅ |
-| 65 | feature/auth-and-discord | Auth helpers, Discord integration, parameter editor | ✅ |
-| 66 | feature/webhook-security | Secret token validation for HTTP Receiver | ✅ |
-| 67 | feature/forge-new-endpoints | Port new endpoints and features to forge/common | ✅ |
-| 68 | feature/visual-connection-cues | Visual connection cues (particles, active state) | ✅ |
-| 69 | feature/auth-ux-improvements | Auth UX: masked fields, copy/generate buttons | ✅ |
-| 70 | docs/api-reference | API reference documentation | ✅ |
-| 71 | feature/event-type-constants | Event TYPE string constants | ✅ |
-| 72 | feature/eira-core-expansion | Teams/Players/Stories/Adventures APIs | ✅ |
-| 73 | feature/neoforge-1.21.4 | NeoForge 1.21.4 support | ✅ |
+| 53 | refactor/rename-eira-relay | Rename to Eira Relay | Done |
+| 54 | feature/power-modes | Power modes (Toggle/Timer) | Done |
+| 55 | refactor/rename-common-forge-fabric-packages | Rename packages | Done |
+| 56 | feature/port-modules-mc-1.21.1 | Multi-version builds | Done |
+| 57 | feature/forge-http-sender | HTTP Sender for forge/common | Done |
+| 58 | feature/forge-power-modes | Power modes for forge/common | Done |
+| 59 | fix/common-translations | Fix translation file for forge | Done |
+| 60 | feature/sender-power-modes | Power modes for HTTP Sender | Done |
+| 61 | feature/global-variables | Global variables | Done |
+| 62 | feature/port-binding-helper | Port/IP info in Receiver settings | Done |
+| 63 | feature/inline-testing | Test button for HTTP Sender | Done |
+| 64 | feature/norwegian-translations | Norwegian translations | Done |
+| 65 | feature/auth-and-discord | Auth helpers, Discord integration | Done |
+| 66 | feature/webhook-security | Secret token validation | Done |
+| 67 | feature/forge-new-endpoints | Port new endpoints to forge | Done |
+| 68 | feature/visual-connection-cues | Particles, active state | Done |
+| 69 | feature/auth-ux-improvements | Masked fields, copy/generate | Done |
+| 70 | docs/api-reference | API reference documentation | Done |
+| 71 | feature/event-type-constants | Event TYPE string constants | Done |
+| 72 | feature/eira-core-expansion | Teams/Players/Stories APIs | Done |
+| 73 | feature/neoforge-1.21.4 | NeoForge 1.21.4 support | Done |
+| 74 | feature/scene-sequencer | Scene Sequencer block | Done |
+| 75 | docs/adventure-toolkit | Adventure toolkit docs | Done |
+| 94 | feature/player-triggers | Player detection on triggers | Done |
 
-## Recent Commits (Eira Ecosystem)
+---
 
-| Commit | Description |
-|--------|-------------|
-| 71d4ce6 | Phase 1-4: New endpoints, security, retry, eira-core module |
-| 6a33035 | Phase 5: Integrate Eira Core event publishing |
-| 241e167 | Add debug event subscribers to Eira Core |
-| b6b60eb | Port new endpoints and features to forge/common |
+## Next Session: Recommended PR Plan
+
+### Phase 2 Features (High Priority - Core Functionality)
+
+These features significantly improve the mod's usefulness and should be completed first.
+
+#### PR #95: Response Variables (#76)
+**Branch:** `feature/response-variables`
+**Complexity:** High
+**Files to create:**
+- `neoforge/src/main/java/no/eira/relay/variables/VariableStorage.java` - Thread-safe storage for variables
+- `neoforge/src/main/java/no/eira/relay/variables/JsonPathExtractor.java` - Extract values from JSON responses
+- `neoforge/src/main/java/no/eira/relay/variables/ResponseCapture.java` - Configuration for what to capture
+- `neoforge/src/main/java/no/eira/relay/variables/VariableSubstitutor.java` - Replace `{{variable}}` placeholders
+
+**Files to modify:**
+- `HttpSenderBlockEntity.java` - Add response capture settings
+- `HttpClientImpl.java` - Return response body for capture
+- `HttpSenderSettingsScreen.java` - Add capture configuration UI
+- Translation files
+
+**Implementation:**
+1. Create `VariableStorage` singleton with global/block/player scopes
+2. Create `JsonPathExtractor` using Gson for dot-notation paths (e.g., `data.user.name`)
+3. Add `ResponseCapture` configuration to sender block entity
+4. Modify HTTP client to return response body
+5. Add GUI for configuring capture rules
+6. Implement variable substitution in URL and parameters
+
+---
+
+#### PR #96: Comparator Output (#77)
+**Branch:** `feature/comparator-output`
+**Complexity:** Medium
+**Files to create:**
+- `neoforge/src/main/java/no/eira/relay/http/api/HttpResult.java` - Record with statusCode + body
+
+**Files to modify:**
+- `HttpSenderBlockEntity.java` - Track last status code
+- `HttpSenderBlock.java` - Add `hasAnalogOutputSignal()`, `getAnalogOutputSignal()`
+- `HttpReceiverBlock.java` - Add comparator output methods
+- `IHttpClient.java` - Add methods returning HttpResult
+
+**Signal mapping:**
+- 15 = Success (2xx)
+- 10 = Redirect (3xx)
+- 5 = Client error (4xx)
+- 2 = Server error (5xx)
+- 0 = No response/timeout
+
+---
+
+#### PR #97: Request Templates (#81)
+**Branch:** `feature/request-templates`
+**Complexity:** Medium
+**Files to create:**
+- `neoforge/src/main/java/no/eira/relay/templates/RequestTemplate.java` - Template model
+- `neoforge/src/main/java/no/eira/relay/templates/RequestTemplateRegistry.java` - Built-in templates
+
+**Files to modify:**
+- `HttpSenderSettingsScreen.java` - Replace Discord button with Template button
+- Translation files
+
+**Built-in templates:**
+1. Discord Webhook
+2. Slack Webhook
+3. IFTTT Webhooks
+4. Home Assistant
+5. Pushover
+6. ntfy.sh
+7. Node-RED
+8. Generic REST API
+
+---
+
+#### PR #98: Visual Wiring Preview (#79)
+**Branch:** `feature/visual-wiring`
+**Complexity:** High (rendering code)
+**Files to create:**
+- `neoforge/src/main/java/no/eira/relay/client/render/WiringOverlayRenderer.java`
+- `neoforge/src/main/java/no/eira/relay/client/debug/HttpBlockDebugInfo.java`
+
+**Files to modify:**
+- `EiraRelay.java` - Register render events
+- Client mixin for debug overlay toggle
+
+**Features:**
+- F3+H toggle for debug overlay
+- Lines between related blocks
+- Status indicators (last request time, status code)
+- Endpoint URL display
+
+---
+
+### Phase 3 Features (Medium Priority - Enhanced Functionality)
+
+#### PR #99: WebSocket Support (#80)
+**Branch:** `feature/websocket`
+**Complexity:** High
+**Description:** Add WebSocket client capability to HTTP Sender for real-time communication
+
+---
+
+#### PR #100: Scheduled Requests (#82)
+**Branch:** `feature/scheduled-requests`
+**Complexity:** Medium
+**Description:** Add timer-based periodic HTTP requests (e.g., every 5 minutes)
+
+---
+
+#### PR #101: Data Flow in Sequences (#83)
+**Branch:** `feature/sequence-data-flow`
+**Complexity:** Medium
+**Description:** Allow Scene Sequencer steps to pass response data to subsequent steps
+
+---
+
+### Recommended Order
+
+| Order | PR | Issue | Rationale |
+|-------|-----|-------|-----------|
+| 1 | #95 | #76 | Response variables enable many other features |
+| 2 | #96 | #77 | Comparator output is simple and highly useful |
+| 3 | #97 | #81 | Templates improve UX significantly |
+| 4 | #98 | #79 | Visual debugging helps users understand the system |
+| 5 | #99 | #80 | WebSocket enables real-time use cases |
+| 6 | #100 | #82 | Scheduled requests enable polling scenarios |
+
+---
+
+## Tech Debt to Address
+
+| Item | Priority | Description |
+|------|----------|-------------|
+| Forge parity | High | Port player detection, Scene Sequencer to forge module |
+| Test coverage | High | Add JUnit tests for core functionality |
+| Javadoc | Low | Add missing documentation to public APIs |
+| GUI refactor | Medium | Extract common GUI code to base class |
+| Error handling | Medium | Improve HTTP error messages and logging |
+
+---
+
+## Session Continuation Guide
+
+When continuing work on this project:
+
+1. **Check current branch:** `git status`
+2. **Pull latest changes:** `git pull origin main`
+3. **Create feature branch:** `git checkout -b feature/xxx`
+4. **Read relevant files** before making changes
+5. **Build after each change:** `./gradlew :neoforge:build`
+6. **Commit with descriptive message** including `Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>`
+7. **Create PR** using `gh pr create`
+
+### Common Patterns
+
+**Adding a new block setting:**
+1. Add field to `Values` inner class in block entity
+2. Update `writeValues()` and `readBuffer()` for network sync
+3. Update `loadAdditional()` and `saveAdditional()` for NBT persistence
+4. Add GUI control in settings screen
+5. Update translations
+
+**Adding a new endpoint:**
+1. Create handler class implementing `IHttpHandler`
+2. Register in `CommonClass.onServerStarting()`
+3. Document in README
+
+**Adding a new utility class:**
+1. Create in `utils/` package
+2. Keep it stateless if possible
+3. Add Javadoc for public methods
