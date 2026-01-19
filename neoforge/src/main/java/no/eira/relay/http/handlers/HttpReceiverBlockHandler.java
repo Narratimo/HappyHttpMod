@@ -7,9 +7,12 @@ import no.eira.relay.http.api.IHttpHandler;
 import no.eira.relay.platform.Services;
 import no.eira.relay.platform.config.GlobalParam;
 import no.eira.relay.utils.ParameterReader;
+import no.eira.relay.utils.PlayerDetector;
 import org.eira.core.api.EiraAPI;
 import org.eira.core.api.events.HttpReceivedEvent;
 import com.sun.net.httpserver.HttpExchange;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -23,16 +26,22 @@ import java.util.*;
 
 public class HttpReceiverBlockHandler implements IHttpHandler {
 
-    // Store block positions and their level instead of direct entity references
-    private List<BlockPos> blockPositions;
+    private static final Gson GSON = new GsonBuilder().create();
+
+    // Store block positions with their player detection settings
+    private Map<BlockPos, BlockSettings> blockSettingsMap;
     private ServerLevel serverLevel;
     private String url;
     private String secretToken;
     private static final String ALLOWED_METHOD = "POST";
 
+    private record BlockSettings(boolean playerDetection, double playerDetectionRadius) {}
+
     public HttpReceiverBlockHandler(HttpReceiverBlockEntity entity, String url, String secretToken){
-        this.blockPositions = new ArrayList<>();
-        this.blockPositions.add(entity.getBlockPos());
+        this.blockSettingsMap = new HashMap<>();
+        HttpReceiverBlockEntity.Values values = entity.getValues();
+        this.blockSettingsMap.put(entity.getBlockPos(),
+            new BlockSettings(values.playerDetection, values.playerDetectionRadius));
         this.serverLevel = (ServerLevel) entity.getLevel();
         this.url = url;
         this.secretToken = secretToken;
@@ -46,7 +55,7 @@ public class HttpReceiverBlockHandler implements IHttpHandler {
         if(handler != null) {
             if (handler instanceof HttpReceiverBlockHandler receiverHandler) {
                 // Add to existing handler (uses token from first block)
-                receiverHandler.addBlockPosition(entity.getBlockPos(), (ServerLevel) entity.getLevel());
+                receiverHandler.addBlockPosition(entity);
                 System.out.println("[HttpAutomator] Added block at " + entity.getBlockPos() + " to existing handler for: " + normalizedUrl);
                 return;
             }
@@ -59,13 +68,16 @@ public class HttpReceiverBlockHandler implements IHttpHandler {
         System.out.println("[HttpAutomator] Registered NEW handler for endpoint: " + normalizedUrl + " at block " + entity.getBlockPos());
     }
 
-    private void addBlockPosition(BlockPos pos, ServerLevel level){
-        if (!this.blockPositions.contains(pos)) {
-            this.blockPositions.add(pos);
+    private void addBlockPosition(HttpReceiverBlockEntity entity){
+        BlockPos pos = entity.getBlockPos();
+        if (!this.blockSettingsMap.containsKey(pos)) {
+            HttpReceiverBlockEntity.Values values = entity.getValues();
+            this.blockSettingsMap.put(pos,
+                new BlockSettings(values.playerDetection, values.playerDetectionRadius));
         }
         // Update level reference if needed
         if (this.serverLevel == null) {
-            this.serverLevel = level;
+            this.serverLevel = (ServerLevel) entity.getLevel();
         }
     }
 
@@ -98,14 +110,47 @@ public class HttpReceiverBlockHandler implements IHttpHandler {
             }
 
             int signalsSent = 0;
+            List<Map<String, Object>> triggeredBlocks = new ArrayList<>();
 
             if (serverLevel != null && serverLevel.getServer() != null) {
                 MinecraftServer server = serverLevel.getServer();
 
-                // Copy the list to avoid concurrent modification
-                List<BlockPos> positionsCopy = new ArrayList<>(blockPositions);
+                // Copy the map to avoid concurrent modification
+                Map<BlockPos, BlockSettings> settingsCopy = new HashMap<>(blockSettingsMap);
 
-                for (BlockPos pos : positionsCopy) {
+                for (Map.Entry<BlockPos, BlockSettings> entry : settingsCopy.entrySet()) {
+                    BlockPos pos = entry.getKey();
+                    BlockSettings settings = entry.getValue();
+
+                    // Detect player if enabled
+                    PlayerDetector.PlayerInfo detectedPlayer = null;
+                    if (settings.playerDetection) {
+                        Optional<PlayerDetector.PlayerInfo> playerInfo =
+                            PlayerDetector.getNearestPlayerInfo(serverLevel, pos, settings.playerDetectionRadius);
+                        if (playerInfo.isPresent()) {
+                            detectedPlayer = playerInfo.get();
+                        }
+                    }
+
+                    // Build block trigger info
+                    Map<String, Object> blockInfo = new LinkedHashMap<>();
+                    blockInfo.put("x", pos.getX());
+                    blockInfo.put("y", pos.getY());
+                    blockInfo.put("z", pos.getZ());
+
+                    if (detectedPlayer != null) {
+                        Map<String, Object> playerData = new LinkedHashMap<>();
+                        playerData.put("uuid", detectedPlayer.uuid().toString());
+                        playerData.put("name", detectedPlayer.name());
+                        playerData.put("distance", Math.round(detectedPlayer.distance() * 100.0) / 100.0);
+                        blockInfo.put("player", playerData);
+                    }
+
+                    triggeredBlocks.add(blockInfo);
+
+                    // Capture player for event
+                    final PlayerDetector.PlayerInfo finalPlayer = detectedPlayer;
+
                     // Schedule on main server thread
                     server.execute(() -> {
                         try {
@@ -117,7 +162,8 @@ public class HttpReceiverBlockHandler implements IHttpHandler {
                                 if (state.getBlock() instanceof HttpReceiverBlock block) {
                                     // Directly call onSignal on the block
                                     block.onSignal(state, serverLevel, pos);
-                                    System.out.println("[EiraRelay] Triggered signal at block position: " + pos);
+                                    System.out.println("[EiraRelay] Triggered signal at block position: " + pos +
+                                        (finalPlayer != null ? " (player: " + finalPlayer.name() + ")" : ""));
                                 }
                             } else {
                                 System.out.println("[EiraRelay] Block entity at " + pos + " is not HttpReceiverBlockEntity or is null");
@@ -139,6 +185,8 @@ public class HttpReceiverBlockHandler implements IHttpHandler {
             try {
                 Map<String, String> allParams = ParameterReader.getAllParameters(exchange);
                 Map<String, Object> eventParams = new HashMap<>(allParams);
+                // Add triggered blocks info to event
+                eventParams.put("triggeredBlocks", triggeredBlocks);
                 EiraAPI.ifPresent(api -> {
                     api.events().publish(new HttpReceivedEvent(endpoint, method, eventParams));
                 });
@@ -146,21 +194,30 @@ public class HttpReceiverBlockHandler implements IHttpHandler {
                 // Ignore event publishing errors
             }
 
-            // Send success response
-            String response = "OK - Signal sent to " + signalsSent + " block(s)";
-            byte[] responseBytes = response.getBytes(StandardCharsets.UTF_8);
-            exchange.getResponseHeaders().set("Content-Type", "text/plain");
+            // Build JSON response
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("status", "ok");
+            response.put("message", "Signal sent to " + signalsSent + " block(s)");
+            response.put("blocks", triggeredBlocks);
+
+            String jsonResponse = GSON.toJson(response);
+            byte[] responseBytes = jsonResponse.getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
             exchange.sendResponseHeaders(200, responseBytes.length);
             try (OutputStream os = exchange.getResponseBody()) {
                 os.write(responseBytes);
             }
 
-            System.out.println("[EiraRelay] Response sent: " + response);
+            System.out.println("[EiraRelay] Response sent: " + jsonResponse);
 
         } catch (Exception e) {
             // Send error response
-            String errorResponse = "Error: " + e.getMessage();
-            byte[] errorBytes = errorResponse.getBytes(StandardCharsets.UTF_8);
+            Map<String, Object> errorResponse = new LinkedHashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", e.getMessage());
+            String jsonError = GSON.toJson(errorResponse);
+            byte[] errorBytes = jsonError.getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
             exchange.sendResponseHeaders(500, errorBytes.length);
             try (OutputStream os = exchange.getResponseBody()) {
                 os.write(errorBytes);

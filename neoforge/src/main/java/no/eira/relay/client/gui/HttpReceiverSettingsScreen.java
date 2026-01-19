@@ -27,10 +27,14 @@ public class HttpReceiverSettingsScreen extends Screen {
     private static Component PORT_LABEL = Component.translatable("gui."+ Constants.MOD_ID + ".port_label");
     private static Component IP_LABEL = Component.translatable("gui."+ Constants.MOD_ID + ".ip_label");
     private static Component TOKEN_LABEL = Component.translatable("gui."+ Constants.MOD_ID + ".token_label");
+    private static Component PLAYER_DETECTION_LABEL = Component.translatable("gui."+ Constants.MOD_ID + ".player_detection_label");
+    private static Component RADIUS_LABEL = Component.translatable("gui."+ Constants.MOD_ID + ".radius_label");
     private static final Component COPY_TEXT = Component.literal("\u2398");
     private static final Component GENERATE_TEXT = Component.literal("\u2672");
     private static final Component SHOW_TEXT = Component.literal("\u25C9");
     private static final Component HIDE_TEXT = Component.literal("\u25CE");
+    private static final Component ENABLED_TEXT = Component.translatable("gui."+ Constants.MOD_ID + ".enabled");
+    private static final Component DISABLED_TEXT = Component.translatable("gui."+ Constants.MOD_ID + ".disabled");
     private static final String TOKEN_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
     private final int screenWidth;
@@ -48,6 +52,8 @@ public class HttpReceiverSettingsScreen extends Screen {
     private Button tokenGenerateButton;
     private Button tokenCopyButton;
     private Button tokenShowButton;
+    private Button playerDetectionButton;
+    private EditBox radiusInput;
     private boolean tokenVisible = false;
     private String statusMessage = "";
     private int statusColor = 0xAAAAAA;
@@ -57,12 +63,14 @@ public class HttpReceiverSettingsScreen extends Screen {
     private float timerValue;
     private EnumTimerUnit timerUnit;
     private String secretTokenValue;
+    private boolean playerDetection;
+    private double playerDetectionRadius;
 
 
     public HttpReceiverSettingsScreen(HttpReceiverBlockEntity blockEntity) {
         super(TITLE);
         screenWidth = 176;
-        screenHeight = 190;
+        screenHeight = 220;
         this.blockEntity = blockEntity;
 
         // Initialize from block entity values
@@ -71,6 +79,8 @@ public class HttpReceiverSettingsScreen extends Screen {
         this.timerValue = values.timer;
         this.timerUnit = values.timerUnit;
         this.secretTokenValue = values.secretToken;
+        this.playerDetection = values.playerDetection;
+        this.playerDetectionRadius = values.playerDetectionRadius;
     }
 
     @Override
@@ -146,14 +156,48 @@ public class HttpReceiverSettingsScreen extends Screen {
 
         updateTokenMasking();
 
+        // Player detection toggle button
+        this.playerDetectionButton = addRenderableWidget(Button.builder(
+                this.playerDetection ? ENABLED_TEXT : DISABLED_TEXT, this::handlePlayerDetectionButton)
+                .bounds(leftPos + 80, topPos + 84, 60, 20)
+                .build()
+        );
+
+        // Radius input
+        this.radiusInput = new EditBox(font, leftPos + 145, topPos + 84, 55, 20, Component.empty());
+        this.radiusInput.setResponder(text -> {
+            try {
+                playerDetectionRadius = Double.parseDouble(text);
+                if (playerDetectionRadius < 1) playerDetectionRadius = 1;
+                if (playerDetectionRadius > 64) playerDetectionRadius = 64;
+            } catch (NumberFormatException e) {
+                // Keep previous value on invalid input
+            }
+        });
+        radiusInput.insertText(String.valueOf((int) playerDetectionRadius));
+        addRenderableWidget(radiusInput);
+
+        updatePlayerDetectionVisibility();
+
         // Save button
         this.saveButton = addRenderableWidget(Button.builder(
                 SAVE_TEXT, this::handleSaveButton)
-                .bounds(leftPos, topPos + 84, 50, 20)
+                .bounds(leftPos, topPos + 110, 50, 20)
                 .build()
         );
 
         updateTimerVisibility();
+    }
+
+    private void handlePlayerDetectionButton(Button button) {
+        this.playerDetection = !this.playerDetection;
+        button.setMessage(this.playerDetection ? ENABLED_TEXT : DISABLED_TEXT);
+        updatePlayerDetectionVisibility();
+    }
+
+    private void updatePlayerDetectionVisibility() {
+        this.radiusInput.visible = this.playerDetection;
+        this.radiusInput.active = this.playerDetection;
     }
 
     private void updateTimerVisibility() {
@@ -235,6 +279,8 @@ public class HttpReceiverSettingsScreen extends Screen {
             values.timer = this.timerValue;
             values.timerUnit = this.timerUnit;
             values.secretToken = this.secretTokenValue != null ? this.secretTokenValue : "";
+            values.playerDetection = this.playerDetection;
+            values.playerDetectionRadius = this.playerDetectionRadius;
             PacketDistributor.sendToServer(new SUpdateHttpReceiverValuesPacket(
                     this.blockEntity.getBlockPos(),
                     values));
@@ -255,11 +301,14 @@ public class HttpReceiverSettingsScreen extends Screen {
         // Draw token label
         guiGraphics.drawString(font, TOKEN_LABEL, leftPos, topPos + 64, 0xFFFFFF);
 
+        // Draw player detection label
+        guiGraphics.drawString(font, PLAYER_DETECTION_LABEL, leftPos, topPos + 90, 0xFFFFFF);
+
         // Display port and IP info below save button
         int port = Services.HTTP_CONFIG.getPort();
         String localIp = getLocalIpAddress();
 
-        int infoY = topPos + 111;
+        int infoY = topPos + 137;
         guiGraphics.drawString(font, PORT_LABEL.getString() + ": " + port, leftPos, infoY, 0xAAAAAA);
         guiGraphics.drawString(font, IP_LABEL.getString() + ": " + localIp, leftPos, infoY + 12, 0xAAAAAA);
 

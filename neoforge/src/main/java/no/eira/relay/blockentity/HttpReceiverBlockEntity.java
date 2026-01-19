@@ -141,6 +141,9 @@ public class HttpReceiverBlockEntity extends BlockEntity {
         this.values.timerUnit = EnumTimerUnit.getById(compound.getInt("timerUnit"));
         this.values.timer = compound.getFloat("timer");
         this.values.secretToken = compound.getString("secretToken");
+        this.values.playerDetection = compound.getBoolean("playerDetection");
+        this.values.playerDetectionRadius = compound.contains("playerDetectionRadius")
+            ? compound.getDouble("playerDetectionRadius") : 16.0;
         this.postLoad();
     }
 
@@ -153,6 +156,8 @@ public class HttpReceiverBlockEntity extends BlockEntity {
         compound.putInt("timerUnit", this.values.timerUnit.getId());
         compound.putFloat("timer", this.values.timer);
         compound.putString("secretToken", this.values.secretToken);
+        compound.putBoolean("playerDetection", this.values.playerDetection);
+        compound.putDouble("playerDetectionRadius", this.values.playerDetectionRadius);
         nbt.put(Constants.MOD_ID, compound);
     }
 
@@ -163,6 +168,8 @@ public class HttpReceiverBlockEntity extends BlockEntity {
         public float timer = 20; // Default 20 ticks = 1 second
         public EnumTimerUnit timerUnit = EnumTimerUnit.TICKS;
         public String secretToken = "";
+        public boolean playerDetection = false;
+        public double playerDetectionRadius = 16.0;
 
         public void writeValues(FriendlyByteBuf buf) {
             buf.writeUtf(this.url);
@@ -170,6 +177,8 @@ public class HttpReceiverBlockEntity extends BlockEntity {
             buf.writeFloat(this.timer);
             buf.writeEnum(this.timerUnit);
             buf.writeUtf(this.secretToken);
+            buf.writeBoolean(this.playerDetection);
+            buf.writeDouble(this.playerDetectionRadius);
         }
 
         public static Values readBuffer(FriendlyByteBuf buf) {
@@ -179,6 +188,8 @@ public class HttpReceiverBlockEntity extends BlockEntity {
             values.timer = buf.readFloat();
             values.timerUnit = buf.readEnum(EnumTimerUnit.class);
             values.secretToken = buf.readUtf();
+            values.playerDetection = buf.readBoolean();
+            values.playerDetectionRadius = buf.readDouble();
             return values;
         }
 
@@ -188,6 +199,8 @@ public class HttpReceiverBlockEntity extends BlockEntity {
             this.timer = values.timer;
             this.timerUnit = values.timerUnit;
             this.secretToken = values.secretToken;
+            this.playerDetection = values.playerDetection;
+            this.playerDetectionRadius = values.playerDetectionRadius;
         }
     }
 }

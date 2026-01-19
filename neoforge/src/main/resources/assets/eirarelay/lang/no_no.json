@@ -24,6 +24,10 @@
   "gui.eirarelay.add_button": "+",
   "gui.eirarelay.clear_button": "X",
   "gui.eirarelay.token_label": "Token:",
+  "gui.eirarelay.player_detection_label": "Spiller:",
+  "gui.eirarelay.radius_label": "Radius:",
+  "gui.eirarelay.enabled": "Aktivert",
+  "gui.eirarelay.disabled": "Deaktivert",
   "block.eirarelay.receiver": "HTTP Mottaker",
   "block.eirarelay.sender": "HTTP Sender"
 }
