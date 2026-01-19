@@ -19,7 +19,7 @@
   "gui.eirarelay.auth_type_bearer": "Bearer",
   "gui.eirarelay.auth_type_basic": "Basic",
   "gui.eirarelay.auth_type_custom": "Custom",
-  "gui.eirarelay.discord_button": "Discord",
+  "gui.eirarelay.template_button": "Template",
   "gui.eirarelay.params_label": "Params:",
   "gui.eirarelay.add_button": "+",
   "gui.eirarelay.clear_button": "X",
