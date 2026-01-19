@@ -11,6 +11,7 @@ import no.eira.relay.registry.ModBlockEntities;
 import no.eira.relay.registry.ModBlocks;
 import no.eira.relay.registry.ModItems;
 import no.eira.relay.registry.ModNetworkPackets;
+import no.eira.relay.variables.VariableStorage;
 
 import java.io.IOException;
 
@@ -50,6 +51,8 @@ public class CommonClass {
 
     public static void onServerStopping(){
         HTTP_SERVER.stopServer();
+        // Clear all response variables
+        VariableStorage.getInstance().clearAll();
     }
 
     /**

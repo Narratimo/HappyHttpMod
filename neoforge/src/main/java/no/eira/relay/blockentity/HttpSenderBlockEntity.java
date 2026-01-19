@@ -10,17 +10,26 @@ import no.eira.relay.registry.ModBlockEntities;
 import no.eira.relay.utils.JsonUtils;
 import no.eira.relay.utils.NBTConverter;
 import no.eira.relay.utils.QueryBuilder;
+import no.eira.relay.variables.JsonPathExtractor;
+import no.eira.relay.variables.ResponseCapture;
+import no.eira.relay.variables.VariableStorage;
+import no.eira.relay.variables.VariableSubstitutor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import no.eira.relay.block.HttpSenderBlock;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class HttpSenderBlockEntity extends BlockEntity {
@@ -57,27 +66,77 @@ public class HttpSenderBlockEntity extends BlockEntity {
             // Set active state when starting request
             setActiveState(true);
 
+            // Get server level for variable substitution
+            ServerLevel serverLevel = (this.level instanceof ServerLevel) ? (ServerLevel) this.level : null;
+
+            // Apply variable substitution to URL
+            String resolvedUrl = VariableSubstitutor.substitute(this.values.url, this.getBlockPos(), serverLevel);
+
+            // Apply variable substitution to parameters
+            Map<String, String> resolvedParams = VariableSubstitutor.substituteMap(
+                this.values.parameterMap, this.getBlockPos(), serverLevel);
+
             Map<String, String> headers = buildAuthHeaders();
+            long startTime = System.currentTimeMillis();
+
             if (this.values.httpMethod.equals(EnumHttpMethod.GET)) {
-                String params = QueryBuilder.paramsToQueryString(this.values.parameterMap);
+                String params = QueryBuilder.paramsToQueryString(resolvedParams);
                 // Use async retry method for reliability
-                CommonClass.HTTP_CLIENT.sendGetWithRetry(this.values.url, params, headers)
-                    .thenAccept(response -> {
-                        if (!response.isEmpty()) {
-                            Constants.LOG.debug("HTTP Sender GET to {} completed", this.values.url);
-                        }
-                    });
+                CommonClass.HTTP_CLIENT.sendGetWithRetry(resolvedUrl, params, headers)
+                    .thenAccept(response -> handleResponse(response, startTime));
             }
             if (this.values.httpMethod.equals(EnumHttpMethod.POST)) {
-                String params = JsonUtils.parametersFromMapToString(this.values.parameterMap);
+                String params = JsonUtils.parametersFromMapToString(resolvedParams);
                 // Use async retry method for reliability
-                CommonClass.HTTP_CLIENT.sendPostWithRetry(this.values.url, params, headers)
-                    .thenAccept(response -> {
-                        if (!response.isEmpty()) {
-                            Constants.LOG.debug("HTTP Sender POST to {} completed", this.values.url);
-                        }
-                    });
+                CommonClass.HTTP_CLIENT.sendPostWithRetry(resolvedUrl, params, headers)
+                    .thenAccept(response -> handleResponse(response, startTime));
             }
+        }
+    }
+
+    private void handleResponse(String response, long startTime) {
+        long responseTime = System.currentTimeMillis() - startTime;
+        int statusCode = (response != null && !response.isEmpty()) ? 200 : 0;
+
+        // Store last response info
+        VariableStorage.getInstance().setLastResponse(
+            this.getBlockPos(), statusCode, response, responseTime);
+
+        if (response == null || response.isEmpty()) {
+            Constants.LOG.debug("HTTP Sender to {} completed with empty response", this.values.url);
+            return;
+        }
+
+        Constants.LOG.debug("HTTP Sender to {} completed in {}ms", this.values.url, responseTime);
+
+        // Process response captures if enabled
+        if (this.values.captureResponse && !this.values.responseCaptures.isEmpty()) {
+            processResponseCaptures(response);
+        }
+    }
+
+    private void processResponseCaptures(String response) {
+        VariableStorage storage = VariableStorage.getInstance();
+
+        for (ResponseCapture capture : this.values.responseCaptures) {
+            if (!capture.isValid()) continue;
+
+            String value = JsonPathExtractor.extract(response, capture.getJsonPath(), capture.getDefaultValue());
+
+            switch (capture.getScope()) {
+                case GLOBAL -> storage.setGlobal(capture.getVariableName(), value);
+                case BLOCK -> storage.setBlock(this.getBlockPos(), capture.getVariableName(), value);
+                case PLAYER -> {
+                    // Player scope requires player context - for now, store as block scope
+                    // Full player support will come with Player-Specific Triggers feature
+                    storage.setBlock(this.getBlockPos(), capture.getVariableName(), value);
+                }
+            }
+
+            Constants.LOG.debug("Captured variable '{}' = '{}' from path '{}'",
+                capture.getVariableName(),
+                value.length() > 50 ? value.substring(0, 50) + "..." : value,
+                capture.getJsonPath());
         }
     }
 
@@ -190,6 +249,15 @@ public class HttpSenderBlockEntity extends BlockEntity {
         this.values.authValue = compound.getString("authValue");
         this.values.customHeaderName = compound.getString("customHeaderName");
         this.values.customHeaderValue = compound.getString("customHeaderValue");
+        // Response capture settings
+        this.values.captureResponse = compound.getBoolean("captureResponse");
+        this.values.responseCaptures = new ArrayList<>();
+        if (compound.contains("responseCaptures", Tag.TAG_LIST)) {
+            ListTag capturesList = compound.getList("responseCaptures", Tag.TAG_COMPOUND);
+            for (int i = 0; i < capturesList.size(); i++) {
+                this.values.responseCaptures.add(ResponseCapture.fromNBT(capturesList.getCompound(i)));
+            }
+        }
     }
 
     @Override
@@ -211,6 +279,13 @@ public class HttpSenderBlockEntity extends BlockEntity {
         compound.putString("authValue", this.values.authValue);
         compound.putString("customHeaderName", this.values.customHeaderName);
         compound.putString("customHeaderValue", this.values.customHeaderValue);
+        // Response capture settings
+        compound.putBoolean("captureResponse", this.values.captureResponse);
+        ListTag capturesList = new ListTag();
+        for (ResponseCapture capture : this.values.responseCaptures) {
+            capturesList.add(capture.toNBT());
+        }
+        compound.put("responseCaptures", capturesList);
         nbt.put(Constants.MOD_ID, compound);
     }
 
@@ -226,6 +301,10 @@ public class HttpSenderBlockEntity extends BlockEntity {
         public String authValue = "";
         public String customHeaderName = "";
         public String customHeaderValue = "";
+
+        // Response capture settings
+        public boolean captureResponse = false;
+        public List<ResponseCapture> responseCaptures = new ArrayList<>();
 
         public Values() {
             this.httpMethod = EnumHttpMethod.GET;
@@ -243,6 +322,12 @@ public class HttpSenderBlockEntity extends BlockEntity {
             buf.writeUtf(this.authValue);
             buf.writeUtf(this.customHeaderName);
             buf.writeUtf(this.customHeaderValue);
+            // Response capture settings
+            buf.writeBoolean(this.captureResponse);
+            buf.writeInt(this.responseCaptures.size());
+            for (ResponseCapture capture : this.responseCaptures) {
+                capture.writeToBuffer(buf);
+            }
         }
 
         public static Values readBuffer(FriendlyByteBuf buf) {
@@ -265,6 +350,13 @@ public class HttpSenderBlockEntity extends BlockEntity {
             values.authValue = buf.readUtf();
             values.customHeaderName = buf.readUtf();
             values.customHeaderValue = buf.readUtf();
+            // Response capture settings
+            values.captureResponse = buf.readBoolean();
+            int captureCount = buf.readInt();
+            values.responseCaptures = new ArrayList<>();
+            for (int i = 0; i < captureCount; i++) {
+                values.responseCaptures.add(ResponseCapture.readFromBuffer(buf));
+            }
             return values;
         }
 
@@ -279,6 +371,11 @@ public class HttpSenderBlockEntity extends BlockEntity {
             this.authValue = values.authValue;
             this.customHeaderName = values.customHeaderName;
             this.customHeaderValue = values.customHeaderValue;
+            this.captureResponse = values.captureResponse;
+            this.responseCaptures = new ArrayList<>();
+            for (ResponseCapture capture : values.responseCaptures) {
+                this.responseCaptures.add(capture.copy());
+            }
         }
     }
 }
