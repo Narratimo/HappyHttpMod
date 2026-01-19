@@ -30,10 +30,12 @@ rootProject.name = 'EiraRelay'
 // Multi-version support:
 // - common/forge: MC 1.20.2 / Java 17
 // - neoforge: MC 1.21.1 / Java 21
+// - neoforge-1.21.4: MC 1.21.4 / Java 21
 // - fabric: disabled (incomplete implementation)
 // - eira-core: Library mod with event bus (MC 1.21.1 / Java 21)
 include("common")
 //include("fabric")
 include("forge")
 include("neoforge")
+include("neoforge-1.21.4")
 include("eira-core")

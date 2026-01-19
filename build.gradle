@@ -7,7 +7,7 @@ subprojects {
     apply plugin: 'java'
 
     // Use Java 21 for NeoForge (1.21.x) and Eira Core, Java 17 for Forge (1.20.x)
-    def javaVersion = (project.name == 'neoforge' || project.name == 'eira-core') ? 21 : 17
+    def javaVersion = (project.name == 'neoforge' || project.name == 'neoforge-1.21.4' || project.name == 'eira-core') ? 21 : 17
     java.toolchain.languageVersion = JavaLanguageVersion.of(javaVersion)
     java.withSourcesJar()
     java.withJavadocJar()
@@ -61,7 +61,7 @@ subprojects {
     tasks.withType(JavaCompile).configureEach {
         it.options.encoding = 'UTF-8'
         // Use Java 21 for NeoForge and Eira Core, Java 17 for Forge
-        def releaseVersion = (project.name == 'neoforge' || project.name == 'eira-core') ? 21 : 17
+        def releaseVersion = (project.name == 'neoforge' || project.name == 'neoforge-1.21.4' || project.name == 'eira-core') ? 21 : 17
         it.options.getRelease().set(releaseVersion)
     }
 
