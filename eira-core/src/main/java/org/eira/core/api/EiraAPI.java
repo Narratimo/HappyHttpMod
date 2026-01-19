@@ -1,7 +1,11 @@
 package org.eira.core.api;
 
 import org.eira.core.EiraCore;
+import org.eira.core.api.adventure.AdventureManager;
 import org.eira.core.api.events.EiraEventBus;
+import org.eira.core.api.player.PlayerManager;
+import org.eira.core.api.story.StoryManager;
+import org.eira.core.api.team.TeamManager;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
@@ -11,14 +15,16 @@ import java.util.function.Consumer;
  *
  * Other mods can use this to:
  * - Publish and subscribe to events
- * - Access team and player APIs (future)
- * - Communicate with Eira Server (future)
+ * - Manage teams and players
+ * - Track story and adventure progress
+ * - Communicate with Eira Server
  *
  * Usage:
  * <pre>
  * EiraAPI eira = EiraAPI.get();
  * if (eira != null) {
  *     eira.events().publish(new MyEvent(data));
+ *     eira.teams().create("My Team", playerId);
  * }
  * </pre>
  */
@@ -52,4 +58,32 @@ public interface EiraAPI {
      * @return The event bus
      */
     EiraEventBus events();
+
+    /**
+     * Get the team manager for team operations.
+     *
+     * @return The team manager
+     */
+    TeamManager teams();
+
+    /**
+     * Get the player manager for player data operations.
+     *
+     * @return The player manager
+     */
+    PlayerManager players();
+
+    /**
+     * Get the story manager for story state tracking.
+     *
+     * @return The story manager
+     */
+    StoryManager stories();
+
+    /**
+     * Get the adventure manager for adventure/objective tracking.
+     *
+     * @return The adventure manager
+     */
+    AdventureManager adventures();
 }
