@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "running=false,active=false": {
+      "model": "eirarelay:block/sequencer"
+    },
+    "running=false,active=true": {
+      "model": "eirarelay:block/sequencer_active"
+    },
+    "running=true,active=false": {
+      "model": "eirarelay:block/sequencer_running"
+    },
+    "running=true,active=true": {
+      "model": "eirarelay:block/sequencer_running_active"
+    }
+  }
+}

@@ -24,6 +24,19 @@
   "gui.eirarelay.add_button": "+",
   "gui.eirarelay.clear_button": "X",
   "gui.eirarelay.token_label": "Token:",
+  "gui.eirarelay.sequencer_title": "Scene Sequencer Innstillinger",
+  "gui.eirarelay.add_step": "+ Legg til",
+  "gui.eirarelay.remove_step": "- Fjern",
+  "gui.eirarelay.delay": "Forsinkelse",
+  "gui.eirarelay.condition": "Betingelse",
+  "gui.eirarelay.loop": "Gjenta",
+  "gui.eirarelay.condition_always": "Alltid",
+  "gui.eirarelay.condition_on_success": "Ved Suksess",
+  "gui.eirarelay.condition_on_failure": "Ved Feil",
+  "gui.eirarelay.stop_ignore": "Ignorer Av",
+  "gui.eirarelay.stop_stop": "Stopp ved Av",
+  "gui.eirarelay.stop_reset": "Tilbakestill ved Av",
   "block.eirarelay.receiver": "HTTP Mottaker",
-  "block.eirarelay.sender": "HTTP Sender"
+  "block.eirarelay.sender": "HTTP Sender",
+  "block.eirarelay.sequencer": "Scene Sequencer"
 }

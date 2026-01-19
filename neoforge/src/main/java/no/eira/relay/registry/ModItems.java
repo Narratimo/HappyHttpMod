@@ -11,6 +11,7 @@ public class ModItems {
     public static void registerItems() {
         Services.ITEM_REGISTRY.registerItem(id("receiver"), () -> new BlockItem(ModBlocks.httpReceiverBlock, new Item.Properties()));
         Services.ITEM_REGISTRY.registerItem(id("sender"), () -> new BlockItem(ModBlocks.httpSenderBlock, new Item.Properties()));
+        Services.ITEM_REGISTRY.registerItem(id("sequencer"), () -> new BlockItem(ModBlocks.sceneSequencerBlock, new Item.Properties()));
         Services.ITEM_REGISTRY.finishRegistry();
     }
 

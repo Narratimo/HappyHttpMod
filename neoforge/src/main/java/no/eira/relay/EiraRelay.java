@@ -1,9 +1,11 @@
 package no.eira.relay;
 
 import no.eira.relay.network.packet.CHttpSenderOpenGuiPacket;
+import no.eira.relay.network.packet.CSceneSequencerOpenGuiPacket;
 import no.eira.relay.network.packet.CSyncHttpReceiverValuesPacket;
 import no.eira.relay.network.packet.SUpdateHttpReceiverValuesPacket;
 import no.eira.relay.network.packet.SUpdateHttpSenderValuesPacket;
+import no.eira.relay.network.packet.SUpdateSceneSequencerValuesPacket;
 import no.eira.relay.platform.config.HttpServerConfig;
 import no.eira.relay.platform.registry.BlockEntityRegistry;
 import no.eira.relay.platform.registry.BlockRegistry;
@@ -74,6 +76,11 @@ public class EiraRelay {
                 CHttpSenderOpenGuiPacket.STREAM_CODEC,
                 CHttpSenderOpenGuiPacket::handle
         );
+        registrar.playToClient(
+                CSceneSequencerOpenGuiPacket.TYPE,
+                CSceneSequencerOpenGuiPacket.STREAM_CODEC,
+                CSceneSequencerOpenGuiPacket::handle
+        );
 
         // Server-bound packets (client -> server)
         registrar.playToServer(
@@ -85,6 +92,11 @@ public class EiraRelay {
                 SUpdateHttpSenderValuesPacket.TYPE,
                 SUpdateHttpSenderValuesPacket.STREAM_CODEC,
                 SUpdateHttpSenderValuesPacket::handle
+        );
+        registrar.playToServer(
+                SUpdateSceneSequencerValuesPacket.TYPE,
+                SUpdateSceneSequencerValuesPacket.STREAM_CODEC,
+                SUpdateSceneSequencerValuesPacket::handle
         );
 
         Constants.LOG.info("Registered Eira Relay network packets");
@@ -120,6 +132,9 @@ public class EiraRelay {
             }
             if (ModBlocks.httpSenderBlock != null) {
                 event.accept(new ItemStack(ModBlocks.httpSenderBlock));
+            }
+            if (ModBlocks.sceneSequencerBlock != null) {
+                event.accept(new ItemStack(ModBlocks.sceneSequencerBlock));
             }
         }
     }

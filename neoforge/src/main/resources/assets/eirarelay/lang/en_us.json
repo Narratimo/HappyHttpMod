@@ -24,6 +24,19 @@
   "gui.eirarelay.add_button": "+",
   "gui.eirarelay.clear_button": "X",
   "gui.eirarelay.token_label": "Token:",
+  "gui.eirarelay.sequencer_title": "Scene Sequencer Settings",
+  "gui.eirarelay.add_step": "+ Add",
+  "gui.eirarelay.remove_step": "- Remove",
+  "gui.eirarelay.delay": "Delay",
+  "gui.eirarelay.condition": "Condition",
+  "gui.eirarelay.loop": "Loop",
+  "gui.eirarelay.condition_always": "Always",
+  "gui.eirarelay.condition_on_success": "On Success",
+  "gui.eirarelay.condition_on_failure": "On Failure",
+  "gui.eirarelay.stop_ignore": "Ignore Off",
+  "gui.eirarelay.stop_stop": "Stop on Off",
+  "gui.eirarelay.stop_reset": "Reset on Off",
   "block.eirarelay.receiver": "HTTP Receiver",
-  "block.eirarelay.sender": "HTTP Sender"
+  "block.eirarelay.sender": "HTTP Sender",
+  "block.eirarelay.sequencer": "Scene Sequencer"
 }
