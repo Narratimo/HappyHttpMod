@@ -1,295 +1,218 @@
 # Eira Relay - Implementation Roadmap
 
-Based on: RELAY_HANDOFF.md, CORE_HANDOFF.md, SERVER_HANDOFF.md, ECOSYSTEM.md
+**Last updated:** January 2026
 
 ---
 
-## Current State (Already Implemented)
+## Current State (Implemented)
 
-| Feature | Status | Notes |
-|---------|--------|-------|
-| HTTP Server | Done | Using `com.sun.net.httpserver` |
-| HTTP Client | Done | POST/GET with headers |
-| HTTP Receiver Block | Done | Emits redstone on trigger |
-| HTTP Sender Block | Done | Sends HTTP on redstone |
-| Secret Token Auth | Done | Bearer header or query param |
-| Power Modes | Done | Switch/Timer |
-| Parameter Editor | Done | Key/value pairs for JSON body |
-| Auth Types | Done | None/Bearer/Basic/Custom |
-| Translations | Done | English + Norwegian |
+### Core Features (Complete)
 
----
+| Feature | Status | PR | Notes |
+|---------|--------|-----|-------|
+| HTTP Server | Done | - | Using `com.sun.net.httpserver` |
+| HTTP Client | Done | - | POST/GET with headers, retry logic |
+| HTTP Receiver Block | Done | - | Emits redstone on trigger |
+| HTTP Sender Block | Done | - | Sends HTTP on redstone |
+| Secret Token Auth | Done | #66 | Bearer header or query param |
+| Power Modes | Done | #54, #60 | Switch/Timer for both blocks |
+| Parameter Editor | Done | #65 | Key/value pairs for JSON body |
+| Auth Types | Done | #65 | None/Bearer/Basic/Custom headers |
+| Translations | Done | #64 | English + Norwegian |
+| Visual Feedback | Done | #68 | Particles and active glow state |
+| Test Button | Done | #63 | Verify sender config in-game |
+| Discord Preset | Done | #65 | One-click Discord webhook setup |
 
-## Phase 1: Standalone Improvements (No Dependencies)
+### HTTP Endpoints (Complete)
 
-These can be implemented now, before Eira Core exists.
+| Endpoint | Method | Status | PR |
+|----------|--------|--------|-----|
+| `/trigger/{id}` | POST | Done | #67 |
+| `/status` | GET | Done | #67 |
+| `/redstone` | POST | Done | #67 |
+| `/broadcast` | POST | Done | #67 |
+| `/{custom}` | POST | Done | - |
 
-### 1.1 New HTTP Endpoints
+### Infrastructure (Complete)
 
-| Endpoint | Method | Purpose | Priority |
-|----------|--------|---------|----------|
-| `/trigger/{triggerId}` | POST | Main trigger endpoint for QR codes, sensors | High |
-| `/redstone` | POST | Direct redstone control at position | Medium |
-| `/broadcast` | POST | Send message to nearby players | Medium |
-| `/status` | GET | Health check with uptime, triggers list | Low |
-
-**Trigger Endpoint Spec:**
-```
-POST /trigger/{triggerId}
-Body: { "teamId": "uuid", "playerId": "uuid", "data": {...} }
-Response: { "success": true, "triggerId": "qr_entrance", "eventPublished": true }
-```
-
-**Redstone Endpoint Spec:**
-```
-POST /redstone
-Body: { "x": 100, "y": 64, "z": 200, "strength": 15, "duration": 40, "pattern": "constant" }
-```
-
-**Broadcast Endpoint Spec:**
-```
-POST /broadcast
-Body: { "message": "Hello!", "type": "chat|title|actionbar", "radius": 50, "position": [x,y,z] }
-```
-
-### 1.2 Rate Limiting
-
-Add rate limiting to prevent abuse:
-- Configurable requests per minute per IP
-- Return 429 Too Many Requests when exceeded
-- Config option: `rateLimitPerMinute = 100`
-
-### 1.3 Multiple API Keys
-
-Expand auth to support multiple API keys:
-```toml
-[http.server]
-    requireAuth = false
-    apiKeys = ["key1", "key2", "key3"]
-```
-
-### 1.4 CORS Support
-
-For browser-based triggers:
-```toml
-[http.server]
-    allowCors = true
-    corsOrigins = ["*"]
-```
-
-### 1.5 Redstone Patterns
-
-Add pattern support to HTTP Receiver:
-
-| Pattern | Description |
-|---------|-------------|
-| `CONSTANT` | Steady signal for full duration |
-| `PULSE` | Single short pulse (5 ticks) |
-| `PULSE_3X` | Three pulses |
-| `FADE` | Gradually decreases from 15 to 0 |
-| `SOS` | Morse code SOS pattern |
-
-### 1.6 Webhook Retry Logic
-
-Improve HTTP Sender with retry on failure:
-- Max 3 retries
-- 1 second delay between retries
-- Log failures after all retries exhausted
+| Feature | Status | PR | Notes |
+|---------|--------|-----|-------|
+| Rate Limiting | Done | #67 | Per-IP, configurable |
+| CORS Support | Done | #67 | Configurable origins |
+| Eira Core Integration | Done | #71, #72 | Event bus, Teams/Players APIs |
+| NeoForge 1.21.4 | Done | #73 | Multi-version support |
+| Scene Sequencer | Done | #74 | Chain HTTP calls with delays |
+| Player Detection | Done | #94 | Detect nearby players on trigger |
 
 ---
 
-## Phase 2: Eira Core Integration (Requires Core)
+## Phase 2: Advanced Features (In Progress)
 
-These require Eira Core mod to exist first.
+### Response Variables (#76)
+**Priority:** High
+**Status:** Not started
 
-### 2.1 Get Core API
+Parse API response data and store for use in subsequent requests.
 
-```java
-EiraAPI eira = EiraAPI.get();
-if (eira == null) {
-    LOGGER.warn("Eira Core not found. Running in standalone mode.");
-    return;
-}
-```
+**Implementation:**
+- `VariableStorage` - Thread-safe singleton for variable storage
+- `JsonPathExtractor` - Extract values using dot notation (e.g., `data.user.name`)
+- `ResponseCapture` - Configure what to capture from responses
+- `VariableSubstitutor` - Replace `{{variable}}` placeholders in URLs/params
 
-### 2.2 Publish Events
-
-When HTTP triggers are received, publish to event bus:
-
-| Event | When Published |
-|-------|----------------|
-| `HttpReceivedEvent` | Any HTTP request received |
-| `ExternalTriggerEvent` | POST /trigger/{id} received |
-| `RedstoneChangeEvent` | Redstone detector block sees change |
-
-```java
-eira.events().publish(new ExternalTriggerEvent(
-    "http",           // source
-    triggerId,        // trigger ID
-    requestData       // payload
-));
-```
-
-### 2.3 Subscribe to Events
-
-Listen for server commands from Core:
-
-| Event | Action |
-|-------|--------|
-| `ServerCommandEvent("emit_redstone", ...)` | Emit redstone at position |
-| `ServerCommandEvent("send_webhook", ...)` | Send HTTP to URL |
-| `CheckpointCompletedEvent` | Send configured webhooks |
-
-```java
-eira.events().subscribe(ServerCommandEvent.class, event -> {
-    switch (event.command()) {
-        case "emit_redstone" -> handleEmitRedstone(event.params());
-        case "send_webhook" -> handleSendWebhook(event.params());
-    }
-});
-```
-
-### 2.4 Redstone Detector Block (New)
-
-Add block that publishes `RedstoneChangeEvent` when redstone changes:
-
-```java
-@Override
-public void neighborChanged(...) {
-    int newStrength = level.getSignal(pos, direction);
-    int oldStrength = getStoredStrength(pos);
-
-    if (newStrength != oldStrength) {
-        EiraAPI.get().events().publish(new RedstoneChangeEvent(pos, oldStrength, newStrength));
-        setStoredStrength(pos, newStrength);
-    }
-}
-```
+**Scopes:**
+- Global - Available everywhere
+- Block - Per block entity
+- Player - Per player (for player-specific triggers)
 
 ---
 
-## Phase 3: Advanced Features
+### Comparator Output (#77)
+**Priority:** High
+**Status:** Not started
 
-### 3.1 Webhook Configuration
+Analog redstone signal based on HTTP response status.
 
-Per-trigger and per-event webhooks:
+**Signal Mapping:**
+| Status | Signal | Description |
+|--------|--------|-------------|
+| 2xx | 15 | Success |
+| 3xx | 10 | Redirect |
+| 4xx | 5 | Client error |
+| 5xx | 2 | Server error |
+| Timeout | 0 | No response |
 
-```toml
-[webhooks]
-    onCheckpointComplete = "http://lights.local/checkpoint"
-    onGameComplete = "http://celebration.local/trigger"
-
-    [[webhooks.rules]]
-        trigger = "qr_entrance"
-        url = "http://door.local/unlock"
-        method = "POST"
-```
-
-### 3.2 Relay Controller Block (Optional)
-
-Central hub for managing multiple triggers in one GUI:
-- List all registered triggers
-- Configure webhooks per trigger
-- View trigger history/stats
-
-### 3.3 Trigger Edge Configuration
-
-HTTP Sender trigger on rising/falling/both edge:
-
-```java
-public enum TriggerEdge {
-    RISING,   // 0 -> 1+ only
-    FALLING,  // 1+ -> 0 only
-    BOTH      // Any change
-}
-```
+**Implementation:**
+- Add `HttpResult` record with statusCode + body
+- Track `lastStatusCode` in block entity
+- Implement `hasAnalogOutputSignal()` and `getAnalogOutputSignal()`
 
 ---
 
-## Priority Order
+### Request Templates (#81)
+**Priority:** Medium
+**Status:** Not started
 
-| Priority | Task | Effort |
-|----------|------|--------|
-| 1 | POST /trigger/{id} endpoint | Low |
-| 2 | Rate limiting | Low |
-| 3 | Redstone patterns | Medium |
-| 4 | POST /redstone endpoint | Low |
-| 5 | POST /broadcast endpoint | Medium |
-| 6 | Webhook retry logic | Low |
-| 7 | Multiple API keys | Low |
-| 8 | CORS support | Low |
-| 9 | GET /status endpoint | Low |
-| 10 | Eira Core integration | High (when Core exists) |
-| 11 | Redstone Detector Block | Medium |
-| 12 | Webhook configuration | Medium |
-| 13 | Relay Controller Block | High |
+Save and reuse block configurations as presets.
 
----
+**Built-in Templates:**
+1. Discord Webhook
+2. Slack Webhook
+3. IFTTT Webhooks
+4. Home Assistant
+5. Pushover
+6. ntfy.sh
+7. Node-RED
+8. Generic REST API
 
-## Reference: Other Ecosystem Components
-
-### Eira Core (separate mod)
-
-Library mod providing:
-- Event bus for cross-mod communication
-- WebSocket client to Eira Server
-- Team/Player APIs
-- State caching
-
-**Relay depends on Core for:** Event publishing/subscribing
-
-### Eira Server (backend)
-
-Node.js backend providing:
-- Check-in service for checkpoint evaluation
-- Database for games, teams, players
-- WebSocket broadcasting
-- REST API for admin
-
-**Relay communicates via:** HTTP triggers, receives commands via Core
+**Implementation:**
+- `RequestTemplate` model class with Builder pattern
+- `RequestTemplateRegistry` for built-in templates
+- Template button replacing Discord button in GUI
 
 ---
 
-## Files That Need Changes
+### Visual Wiring Preview (#79)
+**Priority:** Medium
+**Status:** Not started
 
-### Phase 1 (Standalone)
+Debug overlay showing HTTP block connections and status.
 
-| File | Changes |
-|------|---------|
-| `http/HttpServerImpl.java` | Add new endpoints, rate limiting, CORS |
-| `http/handlers/TriggerHandler.java` | New handler for /trigger/{id} |
-| `http/handlers/RedstoneHandler.java` | New handler for /redstone |
-| `http/handlers/BroadcastHandler.java` | New handler for /broadcast |
-| `http/handlers/StatusHandler.java` | New handler for /status |
-| `http/HttpClientImpl.java` | Add retry logic |
-| `enums/EnumRedstonePattern.java` | New enum for patterns |
-| `blockentity/HttpReceiverBlockEntity.java` | Add pattern support |
-| `client/gui/HttpReceiverSettingsScreen.java` | Add pattern selector |
+**Features:**
+- F3+H toggle for debug overlay
+- Lines between related blocks
+- Last request time and status code display
+- Endpoint URL labels
 
-### Phase 2 (Core Integration)
+---
 
-| File | Changes |
-|------|---------|
-| `integration/CoreIntegration.java` | New - handles Core API |
-| `EiraRelay.java` | Check for Core, register event handlers |
-| `block/RedstoneDetectorBlock.java` | New block |
-| `blockentity/RedstoneDetectorBlockEntity.java` | New block entity |
+## Phase 3: Enhanced Functionality (Planned)
+
+| Feature | Issue | Priority | Description |
+|---------|-------|----------|-------------|
+| WebSocket Support | #80 | High | Real-time bidirectional communication |
+| Scheduled Requests | #82 | High | Time-based periodic HTTP triggers |
+| Data Flow in Sequences | #83 | Medium | Pass response data between Scene Sequencer steps |
+| Conditional Logic Block | #84 | Medium | API-driven redstone decisions |
+| Batch/Multicast Sender | #85 | Medium | Send to multiple endpoints |
+| Audio Integration | #86 | Low | Play sounds from HTTP triggers |
+
+---
+
+## Phase 4: Platform Features (Future)
+
+| Feature | Issue | Description |
+|---------|-------|-------------|
+| Mobile Companion App | #87 | Trigger endpoints from phone |
+| Eira Hub Cloud Relay | #88 | Easy internet access without port forwarding |
+| Integration Marketplace | #89 | Community-shared presets |
+| Visual Flow Builder | #90 | Drag-and-drop sequence designer |
+
+---
+
+## Not Started / Deferred
+
+| Feature | Issue | Status | Notes |
+|---------|-------|--------|-------|
+| Redstone Patterns | - | Deferred | PULSE, FADE, SOS patterns |
+| Multiple API Keys | - | Deferred | Array of valid tokens |
+| Per-Block Rate Limiting | #32 | Not started | Cooldown controls |
+| HTTP Filter Block | #29 | Not started | Validate/transform requests |
+| Redstone Detector Block | - | Not started | Publish events on redstone change |
+| Relay Controller Block | - | Not started | Central hub GUI |
+| Fabric Module | - | Disabled | Incomplete, indefinitely paused |
+
+---
+
+## Files Changed by Feature
+
+### Response Variables (#76)
+
+| Action | File |
+|--------|------|
+| Create | `variables/VariableStorage.java` |
+| Create | `variables/JsonPathExtractor.java` |
+| Create | `variables/ResponseCapture.java` |
+| Create | `variables/VariableSubstitutor.java` |
+| Modify | `HttpSenderBlockEntity.java` |
+| Modify | `HttpClientImpl.java` |
+| Modify | `HttpSenderSettingsScreen.java` |
+| Modify | Translation files |
+
+### Comparator Output (#77)
+
+| Action | File |
+|--------|------|
+| Create | `http/api/HttpResult.java` |
+| Modify | `HttpSenderBlockEntity.java` |
+| Modify | `HttpSenderBlock.java` |
+| Modify | `HttpReceiverBlock.java` |
+| Modify | `IHttpClient.java` |
+| Modify | `HttpClientImpl.java` |
+
+### Request Templates (#81)
+
+| Action | File |
+|--------|------|
+| Create | `templates/RequestTemplate.java` |
+| Create | `templates/RequestTemplateRegistry.java` |
+| Modify | `HttpSenderSettingsScreen.java` |
+| Modify | Translation files |
 
 ---
 
 ## Testing Checklist
 
-### Phase 1
-- [ ] POST /trigger/{id} receives trigger, emits redstone
-- [ ] Rate limiting returns 429 when exceeded
-- [ ] Redstone patterns work (constant, pulse, fade, etc.)
-- [ ] POST /redstone emits at specified position
-- [ ] POST /broadcast sends message to players
-- [ ] Webhook retries on failure
-
 ### Phase 2
-- [ ] Core integration works when Core present
-- [ ] Events published to Core event bus
-- [ ] ServerCommandEvent triggers redstone
-- [ ] Redstone detector publishes change events
-- [ ] Works in standalone mode when Core absent
+- [ ] Response variables capture JSON values
+- [ ] Variable substitution works in URL and parameters
+- [ ] Comparator outputs correct signal for each status range
+- [ ] Templates populate all fields correctly
+- [ ] Debug overlay renders without performance issues
+
+### Regression Tests
+- [ ] Player detection returns correct JSON format
+- [ ] Scene Sequencer steps execute in order
+- [ ] Secret token validation works
+- [ ] Rate limiting blocks excessive requests
+- [ ] Eira Core events publish correctly

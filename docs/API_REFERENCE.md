@@ -248,10 +248,45 @@ Authorization: Bearer your-secret-token
 }
 ```
 
-**Response 200:**
+**Response 200 (JSON format):**
+```json
+{
+  "status": "ok",
+  "message": "Signal sent to 2 block(s)",
+  "blocks": [
+    {
+      "x": 100,
+      "y": 64,
+      "z": 200,
+      "player": {
+        "uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "Steve",
+        "distance": 3.52
+      }
+    },
+    {
+      "x": 105,
+      "y": 64,
+      "z": 200
+    }
+  ]
+}
 ```
-OK - Signal sent to 2 block(s)
-```
+
+**Block Response Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `x`, `y`, `z` | integer | Block coordinates |
+| `player` | object | Present only if player detection enabled and player found |
+| `player.uuid` | string | Player's Minecraft UUID |
+| `player.name` | string | Player's display name |
+| `player.distance` | number | Distance from block center (blocks) |
+
+**Player Detection:**
+- Enable in block GUI with configurable radius (1-64 blocks)
+- Detects nearest player within radius when triggered
+- Player info included in response and Eira Core events
 
 **Response 401 (Unauthorized):**
 ```json
@@ -264,7 +299,7 @@ OK - Signal sent to 2 block(s)
 Redirects to configured URL if global parameters don't match.
 
 **Events Published:**
-- `HttpReceivedEvent(endpoint, method, params)`
+- `HttpReceivedEvent(endpoint, method, params)` - includes `triggeredBlocks` with player info
 
 ---
 
